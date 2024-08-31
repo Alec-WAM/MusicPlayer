@@ -1,10 +1,17 @@
 package alec_wam.musicplayer;
 
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.color.DynamicColors;
 
+import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
@@ -14,11 +21,14 @@ import alec_wam.musicplayer.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final int REQUEST_CODE_PERMISSIONS = 1001;
     private ActivityMainBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
+        DynamicColors.applyToActivitiesIfAvailable(this.getApplication());
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -34,6 +44,31 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = navHostFragment.getNavController();
 //        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
+        checkPermissions();
+    }
+
+    private void checkPermissions() {
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{android.Manifest.permission.READ_MEDIA_AUDIO},
+                    REQUEST_CODE_PERMISSIONS
+            );
+        } else {
+            MusicDatabase.buildAlbumList(this);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CODE_PERMISSIONS) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                MusicDatabase.buildAlbumList(this);
+            } else {
+                Toast.makeText(this, "Permission denied to read media files", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
 }
