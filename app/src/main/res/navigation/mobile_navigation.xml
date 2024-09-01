@@ -15,7 +15,17 @@
         android:id="@+id/navigation_albums"
         android:name="alec_wam.musicplayer.ui.albums.AlbumsFragment"
         android:label="@string/menu_albums"
-        tools:layout="@layout/fragment_albums" />
+        tools:layout="@layout/fragment_albums" >
+        <action
+            android:id="@+id/action_navigation_albums_to_navigation_album"
+            app:destination="@id/navigation_album" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_album"
+        android:name="alec_wam.musicplayer.ui.album.AlbumFragment"
+        android:label="@string/sub_menu_album"
+        tools:layout="@layout/fragment_album" />
 
     <fragment
         android:id="@+id/navigation_playlists"

@@ -1,4 +1,4 @@
-package alec_wam.musicplayer;
+package alec_wam.musicplayer.database;
 
 import android.content.ContentUris;
 import android.content.Context;
@@ -8,48 +8,20 @@ import android.os.Build;
 import android.provider.MediaStore;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.logging.Logger;
-
-class MusicFile {
-    private final Uri uri;
-    private final String name;
-    private final int duration;
-    private final String albumId;
-    private final String album;
-    private final String artist;
-    private final int track;
-    private Uri albumArtUri;
-
-    public MusicFile(Uri uri, String name, int duration, String albumId, String album, String artist, int track){
-        this.uri = uri;
-        this.name = name;
-        this.duration = duration;
-        this.albumId = albumId;
-        this.album = album;
-        this.artist = artist;
-        this.track = track;
-    }
-
-    public void setAlbumArtUri(Uri albumArtUri) {
-        this.albumArtUri = albumArtUri;
-    }
-
-    public Uri getAlbumArtUri() {
-        return this.albumArtUri;
-    }
-}
 
 public class MusicDatabase {
 
     private static final Logger LOGGER = Logger.getLogger("MusicDatabase");
 
     public static final List<MusicFile> MUSIC_LIST = new ArrayList<>();
-    public static final List<MusicAlbum> ALBUM_LIST = new ArrayList<>();
+    public static final Map<String, MusicAlbum> ALBUMS = new HashMap<>();
 
     public static void buildAlbumList(Context context) {
-        ALBUM_LIST.clear();
+        ALBUMS.clear();
 
         Uri collection;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -120,26 +92,31 @@ public class MusicDatabase {
                 Uri albumArtUri = getAlbumArtUri(albumId);
                 musicFile.setAlbumArtUri(albumArtUri);
 
-                MusicAlbum album = getOrCreateAlbum(albumName, artist);
+                MusicAlbum album = getOrCreateAlbum(albumId, albumName, artist);
                 if(album.getAlbumArtUri() == null && albumArtUri != null){
                     LOGGER.info(albumArtUri.toString());
                     album.setAlbumArtUri(albumArtUri);
                 }
+                album.addMusic(musicFile);
 
                 MUSIC_LIST.add(musicFile);
             }
         }
     }
 
-    public static MusicAlbum getOrCreateAlbum(final String albumName, final String artist) {
-        Optional<MusicAlbum> album = ALBUM_LIST.stream().filter((listAlbum) -> listAlbum.getName().equals(albumName)).findFirst();
-        if(album.isPresent()){
-            return album.get();
+    public static MusicAlbum getOrCreateAlbum(final String albumId, final String albumName, final String albumArtist) {
+        MusicAlbum album = ALBUMS.get(albumId);
+        if(album != null){
+            return album;
         }
-        LOGGER.info("Creating album: " + albumName + " by " + artist);
-        MusicAlbum album1 = new MusicAlbum(albumName, artist);
-        ALBUM_LIST.add(album1);
-        return album1;
+        LOGGER.info("Creating album: " + albumName + " by " + albumArtist);
+        album = new MusicAlbum(albumId, albumName, albumArtist);
+        ALBUMS.put(albumId, album);
+        return album;
+    }
+
+    public static MusicAlbum getAlbumById(final String albumId){
+        return ALBUMS.get(albumId);
     }
 
     private static String getAlbumArtPath(Context context, String albumId) {

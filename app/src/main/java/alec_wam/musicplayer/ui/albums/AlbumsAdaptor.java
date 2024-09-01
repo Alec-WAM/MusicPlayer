@@ -1,9 +1,6 @@
 package alec_wam.musicplayer.ui.albums;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,12 +9,12 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 
-import alec_wam.musicplayer.MusicAlbum;
+import alec_wam.musicplayer.database.MusicAlbum;
 import alec_wam.musicplayer.R;
+import alec_wam.musicplayer.utils.FragmentUtils;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class AlbumsAdaptor  extends RecyclerView.Adapter<AlbumsAdaptor.ViewHolder> {
@@ -30,13 +27,14 @@ public class AlbumsAdaptor  extends RecyclerView.Adapter<AlbumsAdaptor.ViewHolde
      * (custom ViewHolder)
      */
     public static class ViewHolder extends RecyclerView.ViewHolder {
+        private final View parentView;
         private final ImageView albumImage;
         private final TextView albumName;
         private final TextView albumArtist;
 
         public ViewHolder(View view) {
             super(view);
-
+            parentView = view;
             albumImage = (ImageView) view.findViewById(R.id.album_cover_image);
             albumName = (TextView) view.findViewById(R.id.album_text_album);
             albumArtist = (TextView) view.findViewById(R.id.album_text_artist);
@@ -93,19 +91,15 @@ public class AlbumsAdaptor  extends RecyclerView.Adapter<AlbumsAdaptor.ViewHolde
 
         viewHolder.getAlbumName().setText(album.getName());
         viewHolder.getAlbumArtist().setText(album.getArtist());
-    }
 
-    public Bitmap getAlbumArtBitmap(Uri albumArtUri) {
-        if (albumArtUri != null) {
-            try (InputStream inputStream = this.context.getContentResolver().openInputStream(albumArtUri)) {
-                if (inputStream != null) {
-                    return BitmapFactory.decodeStream(inputStream);
+        viewHolder.parentView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(context instanceof FragmentActivity) {
+                    FragmentUtils.openAlbumPage(view, album.getAlbumId());
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
-        }
-        return null;  // Return null if the album art path is invalid
+        });
     }
 
     // Return the size of your dataset (invoked by the layout manager)
