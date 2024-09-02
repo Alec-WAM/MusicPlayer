@@ -4,9 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
-import com.google.android.material.search.SearchBar;
-import com.google.android.material.search.SearchView;
+import android.widget.SearchView;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -50,20 +48,20 @@ public class AlbumListFragment extends Fragment implements AlbumListAdaptor.OnAl
         filteredAlbums = new ArrayList<>();
         filteredAlbums.addAll(albums);
 
-        SearchBar searchBar = binding.albumSearchBar;
-//        searchBar.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-//            @Override
-//            public boolean onQueryTextSubmit(String query) {
-//                filterAlbums(query);
-//                return true;
-//            }
-//
-//            @Override
-//            public boolean onQueryTextChange(String newText) {
-//                filterAlbums(newText);
-//                return true;
-//            }
-//        });
+        SearchView searchBar = binding.albumSearchView;
+        searchBar.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                filterAlbums(query);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                filterAlbums(newText);
+                return true;
+            }
+        });
 
         final RecyclerView recyclerView = binding.listAlbums;
         recyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));

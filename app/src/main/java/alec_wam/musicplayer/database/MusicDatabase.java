@@ -7,9 +7,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -17,7 +15,7 @@ public class MusicDatabase {
 
     private static final Logger LOGGER = Logger.getLogger("MusicDatabase");
 
-    public static final List<MusicFile> MUSIC_LIST = new ArrayList<>();
+    public static final Map<Long, MusicFile> SONGS = new HashMap<>();
     public static final Map<String, MusicAlbum> ALBUMS = new HashMap<>();
     public static final Map<String, MusicArtist> ARTISTS = new HashMap<>();
 
@@ -88,7 +86,7 @@ public class MusicDatabase {
 //                }
                 // Stores column values and the contentUri in a local object
                 // that represents the media file.
-                MusicFile musicFile = new MusicFile(contentUri, name, duration, albumId, albumName, artist, track);
+                MusicFile musicFile = new MusicFile(id, contentUri, name, contentUri, duration, albumId, albumName, artist, track);
 
                 Uri albumArtUri = getAlbumArtUri(albumId);
                 musicFile.setAlbumArtUri(albumArtUri);
@@ -103,7 +101,7 @@ public class MusicDatabase {
                 MusicArtist musicArtist = getOrCreateArtist(artist);
                 musicArtist.addAlbum(albumId);
 
-                MUSIC_LIST.add(musicFile);
+                SONGS.put(id, musicFile);
             }
         }
     }

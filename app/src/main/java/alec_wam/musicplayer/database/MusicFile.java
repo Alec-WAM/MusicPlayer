@@ -3,8 +3,10 @@ package alec_wam.musicplayer.database;
 import android.net.Uri;
 
 public class MusicFile {
+    private final long id;
     private final Uri uri;
     private final String name;
+    private final Uri filePath;
     private final int duration;
     private final String albumId;
     private final String album;
@@ -12,14 +14,20 @@ public class MusicFile {
     private final int track;
     private Uri albumArtUri;
 
-    public MusicFile(Uri uri, String name, int duration, String albumId, String album, String artist, int track){
+    public MusicFile(long id, Uri uri, String name, Uri filePath, int duration, String albumId, String album, String artist, int track){
+        this.id = id;
         this.uri = uri;
         this.name = name;
+        this.filePath = filePath;
         this.duration = duration;
         this.albumId = albumId;
         this.album = album;
         this.artist = artist;
         this.track = track;
+    }
+
+    public long getId(){
+        return id;
     }
 
     public void setAlbumArtUri(Uri albumArtUri) {
@@ -36,6 +44,10 @@ public class MusicFile {
 
     public String getName() {
         return name;
+    }
+
+    public Uri getFilePath() {
+        return this.filePath;
     }
 
     public int getDuration() {

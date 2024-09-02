@@ -10,7 +10,7 @@
         android:id="@+id/artist_header_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/colorSecondaryContainer"
+        android:background="?attr/colorSurface"
         android:orientation="vertical"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -44,7 +44,7 @@
                     android:id="@+id/artist_info_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="?attr/colorOnSecondaryContainer"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="20sp"
                     tools:text="Artist Name" />
 
@@ -52,7 +52,7 @@
                     android:id="@+id/artist_info_sub_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="?attr/colorOnSecondaryContainer"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="14sp"
                     tools:text="Artist Album Num" />
             </LinearLayout>

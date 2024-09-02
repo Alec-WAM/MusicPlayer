@@ -3,6 +3,7 @@ package alec_wam.musicplayer.utils;
 import android.os.Bundle;
 import android.view.View;
 
+import alec_wam.musicplayer.MainActivity;
 import alec_wam.musicplayer.R;
 import alec_wam.musicplayer.ui.album.AlbumFragment;
 import alec_wam.musicplayer.ui.artist.ArtistFragment;
@@ -23,14 +24,12 @@ public class FragmentUtils {
 //        fragmentTransaction.commit();
         Bundle args = new Bundle();
         args.putString(AlbumFragment.ARG_ALBUM_ID, albumId);
-        NavController navController = Navigation.findNavController(view);
-        navController.navigate(navId, args);
+        MainActivity.navController.navigate(navId, args);
     }
 
     public static void openArtistPage(final View view, final String artistName, final @IdRes int navId) {
         Bundle args = new Bundle();
         args.putString(ArtistFragment.ARG_ARTIST, artistName);
-        NavController navController = Navigation.findNavController(view);
-        navController.navigate(navId, args);
+        MainActivity.navController.navigate(navId, args);
     }
 }
