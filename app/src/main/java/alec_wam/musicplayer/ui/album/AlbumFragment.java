@@ -26,6 +26,7 @@ import alec_wam.musicplayer.utils.Utils;
 import androidx.fragment.app.Fragment;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.DividerItemDecoration;
 
 public class AlbumFragment extends Fragment {
 

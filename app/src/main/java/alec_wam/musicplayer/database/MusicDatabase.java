@@ -19,6 +19,7 @@ public class MusicDatabase {
 
     public static final List<MusicFile> MUSIC_LIST = new ArrayList<>();
     public static final Map<String, MusicAlbum> ALBUMS = new HashMap<>();
+    public static final Map<String, MusicArtist> ARTISTS = new HashMap<>();
 
     public static void buildAlbumList(Context context) {
         ALBUMS.clear();
@@ -99,6 +100,9 @@ public class MusicDatabase {
                 }
                 album.addMusic(musicFile);
 
+                MusicArtist musicArtist = getOrCreateArtist(artist);
+                musicArtist.addAlbum(albumId);
+
                 MUSIC_LIST.add(musicFile);
             }
         }
@@ -119,27 +123,6 @@ public class MusicDatabase {
         return ALBUMS.get(albumId);
     }
 
-    private static String getAlbumArtPath(Context context, String albumId) {
-        String[] projection = { MediaStore.Audio.Albums.ALBUM_ART };
-        Cursor cursor = context.getContentResolver().query(
-                MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-                projection,
-                MediaStore.Audio.Albums._ID + "=?",
-                new String[]{albumId},
-                null
-        );
-
-        String albumArtPath = null;
-        if (cursor != null) {
-            if (cursor.moveToFirst()) {
-                albumArtPath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums.ALBUM_ART));
-            }
-            cursor.close();
-        }
-
-        return albumArtPath;
-    }
-
     public static Uri getAlbumArtUri(String albumId) {
         if(albumId == null){
             return null;
@@ -147,6 +130,17 @@ public class MusicDatabase {
         Uri albumArtUri = ContentUris.withAppendedId(
                 Uri.parse("content://media/external/audio/albumart"), Long.parseLong(albumId));
         return albumArtUri;
+    }
+
+    public static MusicArtist getOrCreateArtist(final String artistName) {
+        MusicArtist artist = ARTISTS.get(artistName);
+        if(artist != null){
+            return artist;
+        }
+        LOGGER.info("Creating artist: " + artistName);
+        artist = new MusicArtist(artistName);
+        ARTISTS.put(artistName, artist);
+        return artist;
     }
 
 }

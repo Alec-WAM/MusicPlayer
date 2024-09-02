@@ -12,12 +12,32 @@
         tools:layout="@layout/fragment_home" />
 
     <fragment
-        android:id="@+id/navigation_albums"
-        android:name="alec_wam.musicplayer.ui.albums.AlbumsFragment"
+        android:id="@+id/navigation_album_list"
+        android:name="alec_wam.musicplayer.ui.album_list.AlbumListFragment"
         android:label="@string/menu_albums"
         tools:layout="@layout/fragment_albums" >
         <action
-            android:id="@+id/action_navigation_albums_to_navigation_album"
+            android:id="@+id/action_navigation_album_list_to_navigation_album"
+            app:destination="@id/navigation_album" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_artist_list"
+        android:name="alec_wam.musicplayer.ui.artist_list.ArtistListFragment"
+        android:label="@string/menu_artists"
+        tools:layout="@layout/fragment_artist_list" >
+        <action
+            android:id="@+id/action_navigation_artist_list_to_navigation_artist"
+            app:destination="@id/navigation_artist" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_artist"
+        android:name="alec_wam.musicplayer.ui.artist.ArtistFragment"
+        android:label="@string/sub_menu_artist"
+        tools:layout="@layout/fragment_artist" >
+        <action
+            android:id="@+id/action_navigation_artist_to_navigation_album"
             app:destination="@id/navigation_album" />
     </fragment>
 

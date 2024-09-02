@@ -37,14 +37,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="20sp"
-                tools:text="Album Name" />
+                tools:text="Artist Name" />
 
             <TextView
                 android:id="@+id/artist_text_sub_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="14sp"
-                tools:text="Artist" />
+                tools:text="Sub Title" />
         </LinearLayout>
 
     </LinearLayout>

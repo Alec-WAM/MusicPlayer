@@ -1,4 +1,4 @@
-package alec_wam.musicplayer.ui.albums;
+package alec_wam.musicplayer.ui.album_list;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -17,10 +17,15 @@ import alec_wam.musicplayer.utils.FragmentUtils;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
-public class AlbumsAdaptor  extends RecyclerView.Adapter<AlbumsAdaptor.ViewHolder> {
+public class AlbumListAdaptor extends RecyclerView.Adapter<AlbumListAdaptor.ViewHolder> {
 
     private Context context;
     private List<MusicAlbum> localDataSet;
+    private OnAlbumClickListener onAlbumClickListener;
+
+    public interface OnAlbumClickListener {
+        void onAlbumClick(MusicAlbum musicAlbum);
+    }
 
     /**
      * Provide a reference to the type of views that you are using
@@ -35,9 +40,9 @@ public class AlbumsAdaptor  extends RecyclerView.Adapter<AlbumsAdaptor.ViewHolde
         public ViewHolder(View view) {
             super(view);
             parentView = view;
-            albumImage = (ImageView) view.findViewById(R.id.album_cover_image);
-            albumName = (TextView) view.findViewById(R.id.album_text_album);
-            albumArtist = (TextView) view.findViewById(R.id.album_text_artist);
+            albumImage = (ImageView) view.findViewById(R.id.artist_image);
+            albumName = (TextView) view.findViewById(R.id.artist_text_name);
+            albumArtist = (TextView) view.findViewById(R.id.artist_text_sub_title);
         }
 
         public ImageView getAlbumImage() {
@@ -59,9 +64,10 @@ public class AlbumsAdaptor  extends RecyclerView.Adapter<AlbumsAdaptor.ViewHolde
      * @param dataSet String[] containing the data to populate views to be used
      * by RecyclerView
      */
-    public AlbumsAdaptor(Context context, List<MusicAlbum> dataSet) {
+    public AlbumListAdaptor(Context context, List<MusicAlbum> dataSet, OnAlbumClickListener onAlbumClickListener) {
         this.context = context;
         localDataSet = dataSet;
+        this.onAlbumClickListener = onAlbumClickListener;
     }
 
     // Create new views (invoked by the layout manager)
@@ -95,8 +101,8 @@ public class AlbumsAdaptor  extends RecyclerView.Adapter<AlbumsAdaptor.ViewHolde
         viewHolder.parentView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(context instanceof FragmentActivity) {
-                    FragmentUtils.openAlbumPage(view, album.getAlbumId());
+                if(onAlbumClickListener !=null){
+                    onAlbumClickListener.onAlbumClick(album);
                 }
             }
         });

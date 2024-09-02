@@ -43,13 +43,23 @@
             tools:text="Subtitle" />
     </LinearLayout>
 
-    <ImageButton
+<!--    <ImageButton-->
+<!--        android:id="@+id/item_song_menu_button"-->
+<!--        android:layout_width="48dp"-->
+<!--        android:layout_height="48dp"-->
+<!--        android:layout_gravity="center_vertical"-->
+<!--        android:layout_weight="0"-->
+<!--        android:background="@android:color/transparent"-->
+<!--        app:srcCompat="@drawable/ic_menu_button" />-->
+    <Button
+        style="?attr/materialIconButtonStyle"
         android:id="@+id/item_song_menu_button"
+        android:textColor="?attr/colorOnSurface"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_gravity="center_vertical"
         android:layout_weight="0"
-        android:background="@android:color/transparent"
-        app:srcCompat="@drawable/ic_menu_button" />
+        app:icon="@drawable/ic_menu_button"
+        />
 
 </LinearLayout>

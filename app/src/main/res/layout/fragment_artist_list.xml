@@ -4,10 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.album_list.AlbumListFragment">
+    tools:context=".ui.artist_list.ArtistListFragment">
 
     <SearchView
-        android:id="@+id/album_search_view"
+        android:id="@+id/artist_search_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:iconifiedByDefault="false"
@@ -18,10 +18,11 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/listAlbums"
+        android:id="@+id/listArtists"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/album_search_view" />
+        app:layout_constraintTop_toBottomOf="@id/artist_search_view" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

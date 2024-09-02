@@ -1,21 +1,18 @@
 package alec_wam.musicplayer.utils;
 
-import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
 
 import alec_wam.musicplayer.R;
 import alec_wam.musicplayer.ui.album.AlbumFragment;
-import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
+import alec_wam.musicplayer.ui.artist.ArtistFragment;
+import androidx.annotation.IdRes;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
 public class FragmentUtils {
 
-    public static void openAlbumPage(final View view, final String albumId) {
+    public static void openAlbumPage(final View view, final String albumId, final @IdRes int navId) {
 //        AlbumFragment albumTracksFragment = AlbumFragment.newInstance(albumId);
 //
 //        // Replace the current fragment with the new one
@@ -27,6 +24,13 @@ public class FragmentUtils {
         Bundle args = new Bundle();
         args.putString(AlbumFragment.ARG_ALBUM_ID, albumId);
         NavController navController = Navigation.findNavController(view);
-        navController.navigate(R.id.action_navigation_albums_to_navigation_album, args);
+        navController.navigate(navId, args);
+    }
+
+    public static void openArtistPage(final View view, final String artistName, final @IdRes int navId) {
+        Bundle args = new Bundle();
+        args.putString(ArtistFragment.ARG_ARTIST, artistName);
+        NavController navController = Navigation.findNavController(view);
+        navController.navigate(navId, args);
     }
 }

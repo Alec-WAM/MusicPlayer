@@ -1,40 +1,43 @@
-package alec_wam.musicplayer.ui.albums;
+package alec_wam.musicplayer.ui.album_list;
 
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.SearchView;
+
+import com.google.android.material.search.SearchBar;
+import com.google.android.material.search.SearchView;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
+import alec_wam.musicplayer.R;
 import alec_wam.musicplayer.database.MusicAlbum;
 import alec_wam.musicplayer.database.MusicDatabase;
+import alec_wam.musicplayer.utils.FragmentUtils;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.MediatorLiveData;
+import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 import alec_wam.musicplayer.databinding.FragmentAlbumsBinding;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-public class AlbumsFragment extends Fragment {
+public class AlbumListFragment extends Fragment implements AlbumListAdaptor.OnAlbumClickListener {
 
     private static final long DEBOUNCE_DELAY = 300; // Delay in milliseconds
 
     private FragmentAlbumsBinding binding;
     private List<MusicAlbum> albums;
     private List<MusicAlbum> filteredAlbums;
-    private AlbumsAdaptor adaptor;
+    private AlbumListAdaptor adaptor;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        AlbumsViewModel albumsViewModel =
-                new ViewModelProvider(this).get(AlbumsViewModel.class);
+        AlbumListViewModel albumListViewModel =
+                new ViewModelProvider(this).get(AlbumListViewModel.class);
 
         binding = FragmentAlbumsBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
@@ -47,26 +50,29 @@ public class AlbumsFragment extends Fragment {
         filteredAlbums = new ArrayList<>();
         filteredAlbums.addAll(albums);
 
-        SearchView searchView = binding.albumSearchView;
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                filterAlbums(query);
-                return true;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                filterAlbums(newText);
-                return true;
-            }
-        });
+        SearchBar searchBar = binding.albumSearchBar;
+//        searchBar.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+//            @Override
+//            public boolean onQueryTextSubmit(String query) {
+//                filterAlbums(query);
+//                return true;
+//            }
+//
+//            @Override
+//            public boolean onQueryTextChange(String newText) {
+//                filterAlbums(newText);
+//                return true;
+//            }
+//        });
 
         final RecyclerView recyclerView = binding.listAlbums;
         recyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));
 
-        adaptor = new AlbumsAdaptor(this.getContext(), filteredAlbums);
+        adaptor = new AlbumListAdaptor(this.getContext(), filteredAlbums, this);
         recyclerView.setAdapter(adaptor);
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
+        recyclerView.addItemDecoration(dividerItemDecoration);
+
         return root;
     }
 
@@ -84,5 +90,10 @@ public class AlbumsFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+
+    @Override
+    public void onAlbumClick(MusicAlbum musicAlbum) {
+        FragmentUtils.openAlbumPage(this.getView(), musicAlbum.getAlbumId(), R.id.action_navigation_album_list_to_navigation_album);
     }
 }

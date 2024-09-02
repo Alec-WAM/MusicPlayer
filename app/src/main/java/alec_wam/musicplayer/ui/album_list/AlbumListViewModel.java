@@ -1,14 +1,14 @@
-package alec_wam.musicplayer.ui.albums;
+package alec_wam.musicplayer.ui.album_list;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-public class AlbumsViewModel extends ViewModel {
+public class AlbumListViewModel extends ViewModel {
 
     private final MutableLiveData<String> mText;
 
-    public AlbumsViewModel() {
+    public AlbumListViewModel() {
         mText = new MutableLiveData<>();
         mText.setValue("This is dashboard fragment");
     }
