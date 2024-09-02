@@ -94,6 +94,10 @@ public class ArtistListAdaptor extends RecyclerView.Adapter<ArtistListAdaptor.Vi
 
         viewHolder.getArtistName().setText(artist.getName());
 
+        String subTitle = "";
+        subTitle += artist.getAlbumIds().size() + " Album" + (artist.getAlbumIds().size() > 1 ? "s" : "");
+        viewHolder.getArtistSubTitle().setText(subTitle);
+
         viewHolder.parentView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

@@ -1,6 +1,8 @@
 package alec_wam.musicplayer.ui.album_list;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +16,7 @@ import java.util.List;
 import alec_wam.musicplayer.database.MusicAlbum;
 import alec_wam.musicplayer.R;
 import alec_wam.musicplayer.utils.FragmentUtils;
+import alec_wam.musicplayer.utils.ThemedDrawableUtils;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -89,10 +92,11 @@ public class AlbumListAdaptor extends RecyclerView.Adapter<AlbumListAdaptor.View
         MusicAlbum album = localDataSet.get(position);
 //        viewHolder.getAlbumImage().setImageBitmap(bitmap);
 
+        Drawable themed_unknown_album = ThemedDrawableUtils.getThemedIcon(this.context, R.drawable.ic_unkown_album, com.google.android.material.R.attr.colorPrimary, Color.BLACK);
         Glide.with(viewHolder.getAlbumImage().getContext())
                 .load(album.getAlbumArtUri())  // URI for album art
-                .placeholder(R.drawable.ic_unkown_album)  // Optional placeholder
-                .error(R.drawable.ic_unkown_album)  // Optional error image
+                .placeholder(themed_unknown_album)  // Optional placeholder
+                .error(themed_unknown_album)  // Optional error image
                 .into(viewHolder.getAlbumImage());
 
         viewHolder.getAlbumName().setText(album.getName());

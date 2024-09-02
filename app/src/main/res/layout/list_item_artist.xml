@@ -21,7 +21,9 @@
             android:adjustViewBounds="true"
             android:padding="5dp"
             android:scaleType="fitCenter"
-            tools:srcCompat="@tools:sample/avatars" />
+            app:tint="?attr/colorPrimary"
+            app:srcCompat="@drawable/ic_unknown_artist"
+            tools:srcCompat="@drawable/ic_unknown_artist" />
 
         <LinearLayout
             android:id="@+id/container_artist_text"

@@ -1,5 +1,8 @@
 package alec_wam.musicplayer.ui.album;
 
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -16,12 +19,15 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import alec_wam.musicplayer.database.MusicAlbum;
 import alec_wam.musicplayer.database.MusicDatabase;
 import alec_wam.musicplayer.database.MusicFile;
 import alec_wam.musicplayer.R;
 import alec_wam.musicplayer.databinding.FragmentAlbumBinding;
+import alec_wam.musicplayer.utils.MusicPlayerUtils;
+import alec_wam.musicplayer.utils.ThemedDrawableUtils;
 import alec_wam.musicplayer.utils.Utils;
 import androidx.fragment.app.Fragment;
 import androidx.annotation.NonNull;
@@ -88,10 +94,13 @@ public class AlbumFragment extends Fragment {
             diskKeys.sort((a, b) -> {
                 return Integer.compare(a, b);
             });
+            Drawable themed_disc = ThemedDrawableUtils.getThemedIcon(getContext(), R.drawable.ic_disk, com.google.android.material.R.attr.colorSecondary, Color.BLACK);
             for(int diskNum : diskKeys) {
                 if(showDisks){
                     LinearLayout diskHeader = (LinearLayout) inflater.inflate(R.layout.list_item_disk_header, song_container, false);
+                    ImageView diskImage = (ImageView) diskHeader.findViewById(R.id.list_item_disk_icon);
                     TextView diskNumberText = (TextView) diskHeader.findViewById(R.id.list_item_disk_number);
+                    diskImage.setImageDrawable(themed_disc);
                     diskNumberText.setText("Disk " + diskNum);
                     song_container.addView(diskHeader);
                 }
@@ -99,7 +108,7 @@ public class AlbumFragment extends Fragment {
                 tracks.sort(Comparator.comparingInt(MusicFile::getTrack));
 
                 for (int i = 0; i < tracks.size(); i++) {
-                    MusicFile track = tracks.get(i);
+                    final MusicFile track = tracks.get(i);
                     LinearLayout songView = (LinearLayout) inflater.inflate(R.layout.list_item_song, song_container, false);
 
                     TextView trackNumberView = (TextView) songView.findViewById(R.id.item_song_track);
@@ -118,6 +127,13 @@ public class AlbumFragment extends Fragment {
 
                     // TODO Add action to button
 
+                    songView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            AlbumFragment.this.clickSong(track);
+                        }
+                    });
+
                     song_container.addView(songView);
                 }
             }
@@ -130,5 +146,9 @@ public class AlbumFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+
+    public void clickSong(MusicFile musicFile){
+        MusicPlayerUtils.playSong(this.getContext(), musicFile.getId(), Optional.of(albumId));
     }
 }
