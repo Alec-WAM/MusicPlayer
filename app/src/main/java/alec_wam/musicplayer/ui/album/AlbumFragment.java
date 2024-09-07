@@ -1,5 +1,9 @@
 package alec_wam.musicplayer.ui.album;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.media.Image;
@@ -17,6 +21,7 @@ import com.bumptech.glide.Glide;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -26,19 +31,27 @@ import alec_wam.musicplayer.database.MusicDatabase;
 import alec_wam.musicplayer.database.MusicFile;
 import alec_wam.musicplayer.R;
 import alec_wam.musicplayer.databinding.FragmentAlbumBinding;
+import alec_wam.musicplayer.services.MusicPlayerService;
 import alec_wam.musicplayer.utils.MusicPlayerUtils;
 import alec_wam.musicplayer.utils.ThemedDrawableUtils;
 import alec_wam.musicplayer.utils.Utils;
 import androidx.fragment.app.Fragment;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
+
+import static alec_wam.musicplayer.utils.MusicPlayerUtils.BUNDLE_SONG_CHANGE_ALBUM;
+import static alec_wam.musicplayer.utils.MusicPlayerUtils.BUNDLE_SONG_CHANGE_SONG;
+import static alec_wam.musicplayer.utils.MusicPlayerUtils.INTENT_SONG_CHANGE;
 
 public class AlbumFragment extends Fragment {
 
     public static final String ARG_ALBUM_ID = "album_id";
     private FragmentAlbumBinding binding;
     private String albumId;
+    private Map<Long, View> songViews;
+    private long playingSongId = -1L;
 
     public static AlbumFragment newInstance(String albumId) {
         AlbumFragment fragment = new AlbumFragment();
@@ -59,6 +72,11 @@ public class AlbumFragment extends Fragment {
         if (getArguments() != null) {
             albumId = getArguments().getString(ARG_ALBUM_ID);
         }
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(INTENT_SONG_CHANGE);
+        LocalBroadcastManager.getInstance(getContext()).registerReceiver(
+                this.broadcastReceiver, filter
+        );
 
         ImageView cover = (ImageView) binding.albumInfoCover;
         TextView titleView = (TextView) binding.albumInfoTitle;
@@ -88,6 +106,7 @@ public class AlbumFragment extends Fragment {
         titleView.setText(title);
         artistView.setText(artist);
 
+        this.songViews = new HashMap<>();
         if(disks !=null && disks.keySet().size() > 0){
             boolean showDisks = disks.keySet().size() > 1;
             List<Integer> diskKeys = new ArrayList<>(disks.keySet());
@@ -135,6 +154,7 @@ public class AlbumFragment extends Fragment {
                     });
 
                     song_container.addView(songView);
+                    this.songViews.put(track.getId(), songView);
                 }
             }
         }
@@ -142,8 +162,33 @@ public class AlbumFragment extends Fragment {
         return root;
     }
 
+    private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent != null) {
+                if(INTENT_SONG_CHANGE.equalsIgnoreCase(intent.getAction())){
+                    final long lastPlayingSongId = playingSongId;
+                    long songId = intent.getLongExtra(BUNDLE_SONG_CHANGE_SONG, -1);
+                    if(songId > -1L) {
+                        MusicFile musicFile = MusicDatabase.SONGS.get(songId);
+                        if(musicFile !=null){
+                            if(musicFile.getAlbumId().equals(albumId)){
+                                //TODO Update current playing song
+                                final View oldSongView = AlbumFragment.this.songViews.get(lastPlayingSongId);
+
+                                AlbumFragment.this.playingSongId = songId;
+                                View newSongView = AlbumFragment.this.songViews.get(songId);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
     @Override
     public void onDestroyView() {
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(broadcastReceiver);
         super.onDestroyView();
         binding = null;
     }

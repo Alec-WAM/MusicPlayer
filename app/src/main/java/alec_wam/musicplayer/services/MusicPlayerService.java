@@ -9,13 +9,21 @@ import android.media.MediaPlayer;
 import android.os.IBinder;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import alec_wam.musicplayer.database.MusicAlbum;
 import alec_wam.musicplayer.database.MusicDatabase;
 import alec_wam.musicplayer.database.MusicFile;
+import alec_wam.musicplayer.utils.MusicPlayerUtils;
 import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.media3.common.MediaItem;
@@ -54,6 +62,16 @@ public class MusicPlayerService extends MediaSessionService {
         player = new ExoPlayer.Builder(this).build();
         mediaSession = new MediaSession.Builder(this, player).build();
 
+        player.addListener(new Player.Listener() {
+            @Override
+            public void onMediaItemTransition(
+                    @Nullable MediaItem mediaItem,
+                    @Player.MediaItemTransitionReason int reason
+            ){
+                MusicPlayerUtils.broadcastSongChange(MusicPlayerService.this, Long.parseLong(mediaItem.mediaId));
+            }
+        });
+
         IntentFilter filter = new IntentFilter();
         filter.addAction(INTENT_PLAY_SONG);
         filter.addAction(INTENT_PAUSE_SONG);
@@ -72,10 +90,10 @@ public class MusicPlayerService extends MediaSessionService {
                 if(INTENT_PLAY_SONG.equalsIgnoreCase(intent.getAction())){
                     LOGGER.info("BroadcastReceiver: Play Song Message Received");
                     long songId = intent.getLongExtra(BUNDLE_PLAY_SONG_SONG, -1);
+                    String albumId = intent.getStringExtra(BUNDLE_PLAY_SONG_ALBUM);
                     if(songId > -1L) {
                         MusicPlayerService.this.clearQueue();
-                        MusicPlayerService.this.playSong(songId);
-                        //TODO Handle Album
+                        MusicPlayerService.this.playSong(songId, albumId);
                     }
                 }
                 if(INTENT_PAUSE_SONG.equalsIgnoreCase(intent.getAction())) {
@@ -116,9 +134,9 @@ public class MusicPlayerService extends MediaSessionService {
                         .setUri(musicFile.getUri())
                         .setMediaMetadata(
                                 new MediaMetadata.Builder()
-                                        .setArtist(musicFile.getArtist())
-                                        .setTitle(musicFile.getName())
                                         .setArtworkUri(musicFile.getAlbumArtUri())
+                                        .setTitle(musicFile.getName())
+                                        .setArtist(musicFile.getArtist())
                                         .build())
                         .build();
         return mediaItem;
@@ -141,14 +159,32 @@ public class MusicPlayerService extends MediaSessionService {
         player.clearMediaItems();
     }
 
-    private void playSong(long songId) {
+    private void playSong(long songId, String albumId) {
         LOGGER.info("Playing Song...");
-        MusicFile musicFile = MusicDatabase.SONGS.get(songId);
-        if(musicFile !=null) {
-            MediaItem mediaItem = buildMediaItem(musicFile);
-            player.setMediaItem(mediaItem);
+        MusicAlbum album = MusicDatabase.getAlbumById(albumId);
+        if(album !=null){
+            final List<MusicFile> allSongs = album.getAlbumMusic().values().stream()
+                    .flatMap(List::stream).sorted(Comparator.comparingInt(MusicFile::getTrack)).collect(Collectors.toList());
+            final int songIndex = IntStream.range(0, allSongs.size())
+                    .filter(i -> allSongs.get(i).getId() == songId)
+                    .findFirst()
+                    .orElse(-1);
+            List<MediaItem> mediaItems = allSongs.stream().map(this::buildMediaItem).toList();
+            player.setMediaItems(mediaItems);
+            if(songIndex > -1) {
+                player.seekTo(songIndex, 0);
+            }
             player.prepare();
             player.play();
+        }
+        else {
+            MusicFile musicFile = MusicDatabase.SONGS.get(songId);
+            if (musicFile != null) {
+                MediaItem mediaItem = buildMediaItem(musicFile);
+                player.setMediaItem(mediaItem);
+                player.prepare();
+                player.play();
+            }
         }
 //        if (mediaPlayer.isPlaying()) {
 //            mediaPlayer.stop();

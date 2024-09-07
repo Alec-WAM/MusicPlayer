@@ -40,6 +40,7 @@ import alec_wam.musicplayer.databinding.ActivityMainBinding;
 public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_CODE_PERMISSIONS = 1001;
+
     private ActivityMainBinding binding;
     public static NavController navController;
     private SmallMusicPlayerControls smallMusicPlayerControls;

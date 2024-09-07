@@ -15,6 +15,8 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 
+import java.util.logging.Logger;
+
 import alec_wam.musicplayer.R;
 import alec_wam.musicplayer.utils.ThemedDrawableUtils;
 import androidx.media3.common.MediaMetadata;
@@ -22,6 +24,8 @@ import androidx.media3.common.Player;
 import androidx.media3.session.MediaController;
 
 public class SmallMusicPlayerControls extends LinearLayout implements Player.Listener {
+
+    private static final Logger LOGGER = Logger.getLogger("SmallMusicPlayerControls");
 
     public MediaController mediaController;
 
@@ -79,6 +83,7 @@ public class SmallMusicPlayerControls extends LinearLayout implements Player.Lis
 
     @Override
     public void onMediaMetadataChanged(MediaMetadata mediaMetadata) {
+        LOGGER.info("Music Changed");
         Drawable themed_unknown_album = ThemedDrawableUtils.getThemedIcon(getContext(), R.drawable.ic_unkown_album, com.google.android.material.R.attr.colorSecondary, Color.BLACK);
         Glide.with(this)
                 .load(mediaMetadata.artworkUri)  // URI for album art
