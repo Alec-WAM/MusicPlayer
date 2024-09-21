@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.media.session.PlaybackState;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,11 +28,14 @@ import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.Player;
 import androidx.media3.session.MediaController;
 
+import static androidx.media3.common.Player.STATE_READY;
+
 public class SmallMusicPlayerControls extends LinearLayout implements Player.Listener {
 
     private static final Logger LOGGER = Logger.getLogger("SmallMusicPlayerControls");
 
     public MediaController mediaController;
+    public MusicPlayerOverlay playerView;
 
     public ImageView albumImageView;
     public TextView songTitle;
@@ -59,10 +63,10 @@ public class SmallMusicPlayerControls extends LinearLayout implements Player.Lis
         inflater.inflate(R.layout.layout_music_player_small, this, true);
 
         // Initialize child views
-        albumImageView = findViewById(R.id.music_player_album);
-        songTitle = findViewById(R.id.music_player_song_title);
-        songArtist = findViewById(R.id.music_player_song_artist);
-        playPauseButton = findViewById(R.id.music_player_play_pause_button);
+        albumImageView = findViewById(R.id.small_music_player_album);
+        songTitle = findViewById(R.id.small_music_player_song_title);
+        songArtist = findViewById(R.id.small_music_player_song_artist);
+        playPauseButton = findViewById(R.id.small_music_player_play_pause_button);
         playPauseButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -74,6 +78,25 @@ public class SmallMusicPlayerControls extends LinearLayout implements Player.Lis
                 }
             }
         });
+
+        this.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(playerView !=null){
+                    playerView.showOverlay();
+                }
+            }
+        });
+    }
+
+    public void setMediaController(MediaController controller) {
+        this.mediaController = controller;
+        updateFromMediaItem(controller.getCurrentMediaItem());
+        updatePlayPauseButton(controller.isPlaying());
+    }
+
+    public void setPlayerView(MusicPlayerOverlay playerView) {
+        this.playerView = playerView;
     }
 
     public void updatePlayPauseButton(boolean isPlaying){
@@ -90,24 +113,24 @@ public class SmallMusicPlayerControls extends LinearLayout implements Player.Lis
             @Nullable MediaItem mediaItem,
             @Player.MediaItemTransitionReason int reason
     ){
+        updateFromMediaItem(mediaItem);
+    }
+
+    public void updateFromMediaItem(MediaItem mediaItem){
         if(mediaItem !=null){
-            MusicFile musicFile = MusicDatabase.SONGS.get(mediaItem.mediaId);
-            if(musicFile !=null) {
-                Drawable themed_unknown_album = ThemedDrawableUtils.getThemedIcon(getContext(), R.drawable.ic_unkown_album, com.google.android.material.R.attr.colorSecondary, Color.BLACK);
-                Glide.with(this)
-                        .load(musicFile.getAlbumArtUri())  // URI for album art
-                        .placeholder(themed_unknown_album)  // Optional placeholder
-                        .error(themed_unknown_album)  // Optional error image
-                        .into(albumImageView);
-                songTitle.setText(musicFile.getName());
-                songArtist.setText(musicFile.getArtist());
-            }
+            Drawable themed_unknown_album = ThemedDrawableUtils.getThemedIcon(getContext(), R.drawable.ic_unkown_album, com.google.android.material.R.attr.colorSecondary, Color.BLACK);
+            Glide.with(this)
+                    .load(mediaItem.mediaMetadata.artworkUri)  // URI for album art
+                    .placeholder(themed_unknown_album)  // Optional placeholder
+                    .error(themed_unknown_album)  // Optional error image
+                    .into(albumImageView);
+            songTitle.setText(mediaItem.mediaMetadata.title);
+            songArtist.setText(mediaItem.mediaMetadata.artist);
         }
     }
 
     @Override
     public void onMediaMetadataChanged(MediaMetadata mediaMetadata) {
-        LOGGER.info("Music Changed");
         Drawable themed_unknown_album = ThemedDrawableUtils.getThemedIcon(getContext(), R.drawable.ic_unkown_album, com.google.android.material.R.attr.colorSecondary, Color.BLACK);
         Glide.with(this)
                 .load(mediaMetadata.artworkUri)  // URI for album art

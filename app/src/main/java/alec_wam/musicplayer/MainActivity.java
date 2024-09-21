@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
@@ -16,9 +17,11 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Logger;
 
 import alec_wam.musicplayer.database.MusicDatabase;
 import alec_wam.musicplayer.services.MusicPlayerService;
+import alec_wam.musicplayer.ui.views.MusicPlayerOverlay;
 import alec_wam.musicplayer.ui.views.SmallMusicPlayerControls;
 import alec_wam.musicplayer.utils.ThemedDrawableUtils;
 import androidx.activity.EdgeToEdge;
@@ -39,6 +42,8 @@ import alec_wam.musicplayer.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final Logger LOGGER = Logger.getLogger("MainActivity");
+
     private static final int REQUEST_CODE_PERMISSIONS = 1001;
 
     private ActivityMainBinding binding;
@@ -46,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
     private SmallMusicPlayerControls smallMusicPlayerControls;
     private ListenableFuture<MediaController> mediaControllerFuture;
     private MediaController mediaController;
+
+    private MusicPlayerOverlay playerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,22 +106,38 @@ public class MainActivity extends AppCompatActivity {
         checkPermissions();
         startMusicPlayerService();
 
+        playerView = binding.playerView;
+        playerView.setVisibility(View.GONE);
+        ViewCompat.setOnApplyWindowInsetsListener(playerView, (v, insets) -> {
+            // Get the top inset (status bar height)
+            int topInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
+            int bottomInset = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+
+            // Apply padding to the top of the toolbar
+            v.setPadding(v.getPaddingStart(), topInset, v.getPaddingEnd(), bottomInset);
+
+            // Return the insets so they can be applied to other views
+            return insets;
+        });
+
         smallMusicPlayerControls = binding.mediaPlayerSmall;
+        smallMusicPlayerControls.setPlayerView(this.playerView);
 
         SessionToken sessionToken = new SessionToken(this, new ComponentName(this, MusicPlayerService.class));
         mediaControllerFuture = new MediaController.Builder(this, sessionToken).buildAsync();
         mediaControllerFuture.addListener(() -> {
             try {
                 mediaController = mediaControllerFuture.get();
-                smallMusicPlayerControls.mediaController = mediaController;
-                smallMusicPlayerControls.updatePlayPauseButton(mediaController.isPlaying());
+                playerView.setMediaController(mediaController);
+                smallMusicPlayerControls.setMediaController(mediaController);
                 mediaController.addListener(smallMusicPlayerControls);
+                mediaController.addListener(playerView);
             } catch (ExecutionException e) {
                 throw new RuntimeException(e);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-        }, MoreExecutors.directExecutor());
+        }, ContextCompat.getMainExecutor(this));
     }
 
     @Override
@@ -128,7 +151,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onStop(){
         super.onStop();
+        if(mediaController !=null) {
+            mediaController.removeListener(smallMusicPlayerControls);
+            mediaController.removeListener(playerView);
+        }
         MediaController.releaseFuture(mediaControllerFuture);
+        this.playerView.cleanUpHandler();
     }
 
     @Override

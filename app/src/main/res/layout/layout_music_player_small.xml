@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/music_player_container"
+    android:id="@+id/small_music_player_container"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
@@ -10,7 +10,7 @@
     >
 
     <ImageView
-        android:id="@+id/music_player_album"
+        android:id="@+id/small_music_player_album"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
@@ -21,7 +21,7 @@
         tools:srcCompat="@tools:sample/avatars" />
 
     <LinearLayout
-        android:id="@+id/music_player_song_info"
+        android:id="@+id/small_music_player_song_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
@@ -30,7 +30,7 @@
         android:padding="2dp">
 
         <TextView
-            android:id="@+id/music_player_song_title"
+            android:id="@+id/small_music_player_song_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
@@ -41,7 +41,7 @@
             tools:text="Song Title" />
 
         <TextView
-            android:id="@+id/music_player_song_artist"
+            android:id="@+id/small_music_player_song_artist"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="14sp"
@@ -50,7 +50,7 @@
     </LinearLayout>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/music_player_play_pause_button"
+        android:id="@+id/small_music_player_play_pause_button"
         style="?attr/materialIconButtonStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

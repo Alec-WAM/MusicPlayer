@@ -109,6 +109,7 @@ public class MusicPlayerService extends MediaLibraryService {
             this.sessionManager = sessionManager;
         }
 
+        @NonNull
         @Override
         @OptIn(markerClass = UnstableApi.class)
         public ListenableFuture<MediaSession.MediaItemsWithStartPosition> onPlaybackResumption(
@@ -117,8 +118,6 @@ public class MusicPlayerService extends MediaLibraryService {
         ) {
             SettableFuture<MediaSession.MediaItemsWithStartPosition> settableFuture = SettableFuture.create();
             settableFuture.addListener(() -> {
-                // Your app is responsible for storing the playlist and the start position
-                // to use here
                 MediaSession.MediaItemsWithStartPosition resumptionPlaylist = sessionManager.getResumption();
                 settableFuture.set(resumptionPlaylist);
             }, MoreExecutors.directExecutor());
@@ -134,15 +133,13 @@ public class MusicPlayerService extends MediaLibraryService {
                 @NonNull List<MediaItem> mediaItems,
                 int startIndex,
                 long startPositionMs) {
-            LOGGER.info("Set Media Items: " + mediaItems + " Index: " + startIndex);
-            if(mediaItems.size() == 1){
-                return buildAlbumMediaItemList(mediaItems.get(0), startIndex, startPositionMs);
-            }
-
             return Util.transformFutureAsync(
                     onAddMediaItems(mediaSession, controller, mediaItems),
                     (mediaItemList) -> {
                         LOGGER.info("Added Items: " + mediaItemList);
+                        if(mediaItemList.size() == 1){
+                            return buildAlbumMediaItemList(mediaItemList.get(0), startIndex, startPositionMs);
+                        }
                         return Futures.immediateFuture(
                                     new MediaSession.MediaItemsWithStartPosition(mediaItemList, startIndex, startPositionMs));
                     });
@@ -354,7 +351,6 @@ public class MusicPlayerService extends MediaLibraryService {
                     long songId = intent.getLongExtra(BUNDLE_PLAY_SONG_SONG, -1);
                     String albumId = intent.getStringExtra(BUNDLE_PLAY_SONG_ALBUM);
                     if(songId > -1L) {
-                        MusicPlayerService.this.clearQueue();
                         MusicPlayerService.this.playSong(songId, albumId);
                     }
                 }
@@ -475,41 +471,13 @@ public class MusicPlayerService extends MediaLibraryService {
                 player.play();
             }
         }
-//        if (mediaPlayer.isPlaying()) {
-//            mediaPlayer.stop();
-//            mediaPlayer.reset();
-//            LOGGER.info("Stopped Current Song");
-//        }
-//
-//        try {
-//            mediaPlayer.setDataSource(this, song.getFilePath());
-//            mediaPlayer.prepareAsync();
-//            LOGGER.info("Preparing Song...");
-//            mediaPlayer.setOnPreparedListener(mp -> {
-//                LOGGER.info("Song Prepared. Playing...");
-//                mp.start();
-//                isPreparing = false;
-//                isPaused = false;
-//            });
-//            isPreparing = true;
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
     }
 
     private void pauseSong() {
-//        if (mediaPlayer.isPlaying()) {
-//            mediaPlayer.pause();
-//            isPaused = true;
-//        }
         this.player.pause();
     }
 
     private void resumeSong() {
-//        if (isPaused && mediaPlayer != null) {
-//            mediaPlayer.start();
-//            isPaused = false;
-//        }
         this.player.play();
     }
 

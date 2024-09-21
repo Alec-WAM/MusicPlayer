@@ -47,7 +47,6 @@ public class MusicSessionData {
     }
 
     public long loadToPlayer(ExoPlayer player) {
-        player.clearMediaItems();
         List<MediaItem> mediaItems = this.getMediaItems();
         player.setMediaItems(mediaItems);
         if(playingSongIndex > -1){

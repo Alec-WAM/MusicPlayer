@@ -81,13 +81,6 @@ public class MusicDatabase {
                 Uri contentUri = ContentUris.withAppendedId(
                         MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
 
-//                Bitmap thumbnail = null;
-//                try {
-//                    thumbnail = context.getContentResolver().loadThumbnail(contentUri, new Size(200, 200), null);
-//                }
-//                catch (IOException e) {
-//                    e.printStackTrace();
-//                }
                 // Stores column values and the contentUri in a local object
                 // that represents the media file.
                 MusicFile musicFile = new MusicFile(id, contentUri, name, contentUri, duration, albumId, albumName, artist, track);
@@ -97,12 +90,10 @@ public class MusicDatabase {
 
                 MusicAlbum album = getOrCreateAlbum(albumId, albumName, artist);
                 if(album.getAlbumArtUri() == null && albumArtUri != null){
-                    LOGGER.info(albumArtUri.toString());
                     album.setAlbumArtUri(albumArtUri);
                 }
                 album.addMusic(musicFile);
 
-                LOGGER.info(artistId);
                 final String fixedArtistId = artistId.replace(" ", "_");
                 MusicArtist musicArtist = getOrCreateArtist(fixedArtistId, artist);
                 musicArtist.addAlbum(albumId);
@@ -117,7 +108,7 @@ public class MusicDatabase {
         if(album != null){
             return album;
         }
-        LOGGER.info("Creating album: " + albumName + " by " + albumArtist);
+//        LOGGER.info("Creating album: " + albumName + " by " + albumArtist);
         album = new MusicAlbum(albumId, albumName, albumArtist);
         ALBUMS.put(albumId, album);
         return album;
@@ -141,7 +132,7 @@ public class MusicDatabase {
         if(artist != null){
             return artist;
         }
-        LOGGER.info("Creating artist: " + artistId + " " + artistName);
+//        LOGGER.info("Creating artist: " + artistId + " " + artistName);
         artist = new MusicArtist(artistId, artistName);
         ARTISTS.put(artistId, artist);
         return artist;
