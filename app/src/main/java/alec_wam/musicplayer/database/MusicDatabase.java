@@ -61,7 +61,7 @@ public class MusicDatabase {
             int albumColumn =
                     cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM);
             int artistIdColumn =
-                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST);
+                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST_ID);
             int artistColumn =
                     cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST);
             int trackColumn =
@@ -81,9 +81,10 @@ public class MusicDatabase {
                 Uri contentUri = ContentUris.withAppendedId(
                         MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
 
+                final String fixedArtistId = artistId.replace(" ", "_");
                 // Stores column values and the contentUri in a local object
                 // that represents the media file.
-                MusicFile musicFile = new MusicFile(id, contentUri, name, contentUri, duration, albumId, albumName, artist, track);
+                MusicFile musicFile = new MusicFile(id, contentUri, name, contentUri, duration, albumId, albumName, fixedArtistId, artist, track);
 
                 Uri albumArtUri = getAlbumArtUri(albumId);
                 musicFile.setAlbumArtUri(albumArtUri);
@@ -94,7 +95,6 @@ public class MusicDatabase {
                 }
                 album.addMusic(musicFile);
 
-                final String fixedArtistId = artistId.replace(" ", "_");
                 MusicArtist musicArtist = getOrCreateArtist(fixedArtistId, artist);
                 musicArtist.addAlbum(albumId);
 

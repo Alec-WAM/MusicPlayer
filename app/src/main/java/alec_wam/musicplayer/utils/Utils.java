@@ -2,23 +2,16 @@ package alec_wam.musicplayer.utils;
 
 public class Utils {
 
-    public static String convertSecondsToTimeString(int totalSeconds) {
-        int hours = totalSeconds / 3600;  // 1 hour = 3600 seconds
-        int minutes = (totalSeconds % 3600) / 60;  // Remaining minutes
-        int seconds = totalSeconds % 60;  // Remaining seconds
+    public static String convertMillisecondsToTimeString(long millis) {
+         long seconds = (millis / 1000) % 60;
+        long minutes = (millis / (1000 * 60)) % 60;
+        long hours = (millis / (1000 * 60 * 60)) % 24;
 
-        StringBuilder timeString = new StringBuilder();
         if (hours > 0) {
-            timeString.append(hours).append("h");
+            return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+        } else {
+            return String.format("%02d:%02d", minutes, seconds);
         }
-        if (minutes > 0) {
-            timeString.append(minutes).append("m");
-        }
-        if (seconds > 0) {
-            timeString.append(seconds).append("s");
-        }
-
-        return timeString.toString();
     }
 
     public static int getDiskNumber(int track) {

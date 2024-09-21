@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -19,7 +18,6 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -40,9 +38,7 @@ import androidx.fragment.app.Fragment;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import androidx.recyclerview.widget.DividerItemDecoration;
 
-import static alec_wam.musicplayer.utils.MusicPlayerUtils.BUNDLE_SONG_CHANGE_ALBUM;
 import static alec_wam.musicplayer.utils.MusicPlayerUtils.BUNDLE_SONG_CHANGE_SONG;
 import static alec_wam.musicplayer.utils.MusicPlayerUtils.INTENT_SONG_CHANGE;
 
@@ -146,9 +142,8 @@ public class AlbumFragment extends Fragment {
 
                     TextView trackSubtitleView = (TextView) songView.findViewById(R.id.item_song_subtitle);
                     String subTitle = track.getArtist();
-                    // TODO Convert to mins
                     if (track.getDuration() > 0) {
-                        subTitle += " - " + Utils.convertSecondsToTimeString((int) (track.getDuration() / 1000));
+                        subTitle += " - " + Utils.convertMillisecondsToTimeString(track.getDuration());
                     }
                     trackSubtitleView.setText(subTitle);
 

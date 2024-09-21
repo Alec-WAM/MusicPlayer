@@ -10,11 +10,12 @@ public class MusicFile {
     private final int duration;
     private final String albumId;
     private final String album;
+    private final String artistId;
     private final String artist;
     private final int track;
     private Uri albumArtUri;
 
-    public MusicFile(long id, Uri uri, String name, Uri filePath, int duration, String albumId, String album, String artist, int track){
+    public MusicFile(long id, Uri uri, String name, Uri filePath, int duration, String albumId, String album, String artistId, String artist, int track){
         this.id = id;
         this.uri = uri;
         this.name = name;
@@ -22,6 +23,7 @@ public class MusicFile {
         this.duration = duration;
         this.albumId = albumId;
         this.album = album;
+        this.artistId = artistId;
         this.artist = artist;
         this.track = track;
     }
@@ -60,6 +62,10 @@ public class MusicFile {
 
     public String getAlbum() {
         return album;
+    }
+
+    public String getArtistId() {
+        return artistId;
     }
 
     public String getArtist() {

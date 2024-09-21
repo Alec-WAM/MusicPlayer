@@ -10,21 +10,24 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.TranslateAnimation;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.logging.Logger;
 
 import alec_wam.musicplayer.R;
-import alec_wam.musicplayer.database.MusicDatabase;
-import alec_wam.musicplayer.database.MusicFile;
 import alec_wam.musicplayer.utils.ThemedDrawableUtils;
+import alec_wam.musicplayer.utils.Utils;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.Player;
@@ -38,15 +41,23 @@ public class MusicPlayerOverlay extends ConstraintLayout implements Player.Liste
     private Handler handler = new Handler(Looper.getMainLooper());
     private Runnable seekBarRunnable;
 
+    private long mediaId;
+
     public Button closeButton;
+    public Button menuButton;
 
     public ImageView albumImageView;
     public TextView songTitle;
     public TextView songArtist;
     public SeekBar seekBar;
+    public TextView songProgressText;
+    public TextView songLengthText;
     public MaterialButton prevButton;
     public MaterialButton playPauseButton;
     public MaterialButton nextButton;
+
+    public FrameLayout songMenu;
+    public BottomSheetBehavior songMenuBehavior;
 
     public MusicPlayerOverlay(Context context) {
         super(context);
@@ -76,12 +87,26 @@ public class MusicPlayerOverlay extends ConstraintLayout implements Player.Liste
             }
         });
 
+        menuButton = findViewById(R.id.music_player_menu_button);
+        menuButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ModalMusicPlayerSongBottomSheet modal = new ModalMusicPlayerSongBottomSheet(R.layout.layout_music_player_song_menu, MusicPlayerOverlay.this, mediaId);
+                if(getContext() instanceof FragmentActivity){
+                    FragmentManager fragmentManager = ((FragmentActivity) getContext()).getSupportFragmentManager();
+                    modal.show(fragmentManager, ModalMusicPlayerSongBottomSheet.TAG);
+                }
+            }
+        });
+
         // Initialize child views
         albumImageView = findViewById(R.id.music_player_album_image);
         songTitle = findViewById(R.id.music_player_song_name);
         songArtist = findViewById(R.id.music_player_song_artist);
 
         seekBar = findViewById(R.id.music_player_control_seekbar);
+        songProgressText = findViewById(R.id.music_player_controls_time_current);
+        songLengthText = findViewById(R.id.music_player_controls_time_length);
 
         updateSeekBarProgress();
         seekBarRunnable = createSeekBarRunnable();
@@ -141,6 +166,27 @@ public class MusicPlayerOverlay extends ConstraintLayout implements Player.Liste
         });
 
         updatePrevNextButtons();
+
+//        songMenu = findViewById(R.id.music_player_song_options);
+//        songMenuBehavior = BottomSheetBehavior.from(songMenu);
+//        songMenuBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+//            @Override
+//            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+//                if (newState == BottomSheetBehavior.STATE_HIDDEN) {
+//                    songMenuBehavior.setDraggable(false);
+//                }
+//                if (newState != BottomSheetBehavior.STATE_HIDDEN) {
+//                    songMenuBehavior.setDraggable(true);
+//                }
+//            }
+//
+//            @Override
+//            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+//            }
+//        });
+//        songMenuBehavior.setPeekHeight(0);
+//        songMenuBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+//        songMenuBehavior.setDraggable(false);
     }
 
     public void setMediaController(MediaController controller) {
@@ -203,6 +249,7 @@ public class MusicPlayerOverlay extends ConstraintLayout implements Player.Liste
         if(mediaController !=null) {
             long currentPosition = mediaController.getCurrentPosition();
             seekBar.setProgress((int) currentPosition);
+            songProgressText.setText(Utils.convertMillisecondsToTimeString(currentPosition));
         }
     }
 
@@ -226,10 +273,15 @@ public class MusicPlayerOverlay extends ConstraintLayout implements Player.Liste
         songTitle.setText(mediaMetadata.title);
         songArtist.setText(mediaMetadata.artist);
         updatePrevNextButtons();
+        if(mediaController !=null) {
+            seekBar.setMax((int) mediaController.getDuration());
+            songLengthText.setText(Utils.convertMillisecondsToTimeString(mediaController.getDuration()));
+        }
     }
 
     public void updateFromMediaItem(MediaItem mediaItem){
         if(mediaItem !=null){
+            this.mediaId = Long.parseLong(mediaItem.mediaId);
             Drawable themed_unknown_album = ThemedDrawableUtils.getThemedIcon(getContext(), R.drawable.ic_unkown_album, com.google.android.material.R.attr.colorSecondary, Color.BLACK);
             Glide.with(this)
                     .load(mediaItem.mediaMetadata.artworkUri)  // URI for album art
@@ -240,8 +292,9 @@ public class MusicPlayerOverlay extends ConstraintLayout implements Player.Liste
             songArtist.setText(mediaItem.mediaMetadata.artist);
         }
         if(mediaController !=null) {
-            long currentPosition = mediaController.getCurrentPosition();
-            seekBar.setProgress((int) currentPosition);
+            seekBar.setMax((int) mediaController.getDuration());
+            songLengthText.setText(Utils.convertMillisecondsToTimeString(mediaController.getDuration()));
+            updateSeekBarProgress();
         }
     }
 
@@ -261,6 +314,7 @@ public class MusicPlayerOverlay extends ConstraintLayout implements Player.Liste
         // When player is ready, set the SeekBar max to media duration
         if (playbackState == Player.STATE_READY) {
             seekBar.setMax((int) mediaController.getDuration());
+            songLengthText.setText(Utils.convertMillisecondsToTimeString(mediaController.getDuration()));
         }
     }
 }
