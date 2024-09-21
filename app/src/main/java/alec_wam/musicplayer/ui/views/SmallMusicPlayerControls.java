@@ -18,7 +18,11 @@ import com.google.android.material.button.MaterialButton;
 import java.util.logging.Logger;
 
 import alec_wam.musicplayer.R;
+import alec_wam.musicplayer.database.MusicDatabase;
+import alec_wam.musicplayer.database.MusicFile;
 import alec_wam.musicplayer.utils.ThemedDrawableUtils;
+import androidx.annotation.Nullable;
+import androidx.media3.common.MediaItem;
 import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.Player;
 import androidx.media3.session.MediaController;
@@ -78,6 +82,26 @@ public class SmallMusicPlayerControls extends LinearLayout implements Player.Lis
         }
         else {
             playPauseButton.setIcon(getResources().getDrawable(R.drawable.ic_pause, getContext().getTheme()));
+        }
+    }
+
+    @Override
+    public void onMediaItemTransition(
+            @Nullable MediaItem mediaItem,
+            @Player.MediaItemTransitionReason int reason
+    ){
+        if(mediaItem !=null){
+            MusicFile musicFile = MusicDatabase.SONGS.get(mediaItem.mediaId);
+            if(musicFile !=null) {
+                Drawable themed_unknown_album = ThemedDrawableUtils.getThemedIcon(getContext(), R.drawable.ic_unkown_album, com.google.android.material.R.attr.colorSecondary, Color.BLACK);
+                Glide.with(this)
+                        .load(musicFile.getAlbumArtUri())  // URI for album art
+                        .placeholder(themed_unknown_album)  // Optional placeholder
+                        .error(themed_unknown_album)  // Optional error image
+                        .into(albumImageView);
+                songTitle.setText(musicFile.getName());
+                songArtist.setText(musicFile.getArtist());
+            }
         }
     }
 

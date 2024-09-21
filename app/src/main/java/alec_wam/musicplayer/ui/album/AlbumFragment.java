@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 import alec_wam.musicplayer.database.MusicAlbum;
 import alec_wam.musicplayer.database.MusicDatabase;
@@ -46,6 +47,8 @@ import static alec_wam.musicplayer.utils.MusicPlayerUtils.BUNDLE_SONG_CHANGE_SON
 import static alec_wam.musicplayer.utils.MusicPlayerUtils.INTENT_SONG_CHANGE;
 
 public class AlbumFragment extends Fragment {
+
+    private static final Logger LOGGER = Logger.getLogger("AlbumFragment");
 
     public static final String ARG_ALBUM_ID = "album_id";
     private FragmentAlbumBinding binding;
@@ -77,6 +80,11 @@ public class AlbumFragment extends Fragment {
         LocalBroadcastManager.getInstance(getContext()).registerReceiver(
                 this.broadcastReceiver, filter
         );
+
+        if(MusicPlayerService.currentSong !=null){
+            LOGGER.info("Loading Current Song: " + MusicPlayerService.currentSong);
+            this.playingSongId = Long.parseLong(MusicPlayerService.currentSong.mediaId);
+        }
 
         ImageView cover = (ImageView) binding.albumInfoCover;
         TextView titleView = (TextView) binding.albumInfoTitle;
@@ -153,6 +161,11 @@ public class AlbumFragment extends Fragment {
                         }
                     });
 
+                    if(track.getId() == this.playingSongId) {
+                        int themeColor = ThemedDrawableUtils.getThemeColor(getContext(), com.google.android.material.R.attr.colorSecondaryContainer, R.color.colorCustomColor);
+                        songView.setBackgroundColor(themeColor);
+                    }
+
                     song_container.addView(songView);
                     this.songViews.put(track.getId(), songView);
                 }
@@ -173,12 +186,22 @@ public class AlbumFragment extends Fragment {
                         MusicFile musicFile = MusicDatabase.SONGS.get(songId);
                         if(musicFile !=null){
                             if(musicFile.getAlbumId().equals(albumId)){
-                                //TODO Update current playing song
                                 final View oldSongView = AlbumFragment.this.songViews.get(lastPlayingSongId);
+                                if(oldSongView !=null) {
+                                    oldSongView.setBackground(null);
+                                }
 
                                 AlbumFragment.this.playingSongId = songId;
                                 View newSongView = AlbumFragment.this.songViews.get(songId);
+                                int themeColor = ThemedDrawableUtils.getThemeColor(getContext(), com.google.android.material.R.attr.colorSecondaryContainer, R.color.colorCustomColor);
+                                newSongView.setBackgroundColor(themeColor);
                             }
+                        }
+                    }
+                    else {
+                        final View oldSongView = AlbumFragment.this.songViews.get(lastPlayingSongId);
+                        if(oldSongView !=null) {
+                            oldSongView.setBackground(null);
                         }
                     }
                 }

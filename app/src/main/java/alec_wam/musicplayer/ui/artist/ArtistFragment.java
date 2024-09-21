@@ -6,27 +6,20 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import alec_wam.musicplayer.database.MusicAlbum;
 import alec_wam.musicplayer.database.MusicArtist;
 import alec_wam.musicplayer.database.MusicDatabase;
-import alec_wam.musicplayer.database.MusicFile;
 import alec_wam.musicplayer.R;
 import alec_wam.musicplayer.databinding.FragmentArtistBinding;
 import alec_wam.musicplayer.ui.album_list.AlbumListAdaptor;
 import alec_wam.musicplayer.utils.FragmentUtils;
-import alec_wam.musicplayer.utils.Utils;
 import androidx.fragment.app.Fragment;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -37,7 +30,7 @@ public class ArtistFragment extends Fragment implements AlbumListAdaptor.OnAlbum
 
     public static final String ARG_ARTIST = "artist";
     private FragmentArtistBinding binding;
-    private String artistName;
+    private String artistId;
     private List<MusicAlbum> artistAlbums;
     private AlbumListAdaptor adaptor;
 
@@ -58,7 +51,7 @@ public class ArtistFragment extends Fragment implements AlbumListAdaptor.OnAlbum
         View root = binding.getRoot();
 
         if (getArguments() != null) {
-            artistName = getArguments().getString(ARG_ARTIST);
+            artistId = getArguments().getString(ARG_ARTIST);
         }
 
         ImageView cover = (ImageView) binding.artistInfoCover;
@@ -68,7 +61,7 @@ public class ArtistFragment extends Fragment implements AlbumListAdaptor.OnAlbum
         Uri artistArt = null;
         Set<String> albumIds = null;
 
-        MusicArtist artist = MusicDatabase.ARTISTS.get(artistName);
+        MusicArtist artist = MusicDatabase.ARTISTS.get(artistId);
         if(artist !=null){
             albumIds = artist.getAlbumIds();
         }
@@ -79,7 +72,7 @@ public class ArtistFragment extends Fragment implements AlbumListAdaptor.OnAlbum
 //                .error(R.drawable.ic_unkown_album)  // Optional error image
 //                .into(cover);
 //        titleView.setText(title);
-        titleView.setText(artistName);
+        titleView.setText(artist.getName());
 
         artistAlbums = new ArrayList<>();
         if(albumIds !=null && albumIds.size() > 0){

@@ -33,6 +33,11 @@ public class ThemedDrawableUtils {
         return drawable;
     }
 
+    public static int getThemeColor(Context context, int colorAttrId, int fallbackColor){
+        TypedArray typedArray = context.getTheme().obtainStyledAttributes(new int[]{colorAttrId});
+        return typedArray.getColor(0, fallbackColor);
+    }
+
     public static void clearCache(){
         THEMED_DRAWABLES.clear();
     }

@@ -27,9 +27,9 @@ public class FragmentUtils {
         MainActivity.navController.navigate(navId, args);
     }
 
-    public static void openArtistPage(final View view, final String artistName, final @IdRes int navId) {
+    public static void openArtistPage(final View view, final String artistId, final @IdRes int navId) {
         Bundle args = new Bundle();
-        args.putString(ArtistFragment.ARG_ARTIST, artistName);
+        args.putString(ArtistFragment.ARG_ARTIST, artistId);
         MainActivity.navController.navigate(navId, args);
     }
 }

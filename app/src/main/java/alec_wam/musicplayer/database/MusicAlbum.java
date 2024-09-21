@@ -4,9 +4,11 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import alec_wam.musicplayer.utils.Utils;
 
@@ -55,5 +57,10 @@ public class MusicAlbum {
 
     public Map<Integer, List<MusicFile>> getAlbumMusic(){
         return this.albumMusic;
+    }
+
+    public List<MusicFile> getAllMusicFiles() {
+        return getAlbumMusic().values().stream()
+                .flatMap(List::stream).sorted(Comparator.comparingInt(MusicFile::getTrack)).collect(Collectors.toList());
     }
 }

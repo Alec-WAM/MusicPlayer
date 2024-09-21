@@ -36,6 +36,7 @@ public class MusicDatabase {
                 MediaStore.Audio.Media.DURATION,
                 MediaStore.Audio.Media.ALBUM_ID,
                 MediaStore.Audio.Media.ALBUM,
+                MediaStore.Audio.Media.ARTIST_ID,
                 MediaStore.Audio.Media.ARTIST,
                 MediaStore.Audio.Media.TRACK,
                 MediaStore.Audio.Media.IS_MUSIC
@@ -59,6 +60,8 @@ public class MusicDatabase {
                     cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID);
             int albumColumn =
                     cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM);
+            int artistIdColumn =
+                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST);
             int artistColumn =
                     cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST);
             int trackColumn =
@@ -69,6 +72,7 @@ public class MusicDatabase {
                 long id = cursor.getLong(idColumn);
                 String name = cursor.getString(nameColumn);
                 int duration = cursor.getInt(durationColumn);
+                String artistId = cursor.getString(artistIdColumn);
                 String artist = cursor.getString(artistColumn);
                 String albumId = cursor.getString(albumIdColumn);
                 String albumName = cursor.getString(albumColumn);
@@ -98,7 +102,9 @@ public class MusicDatabase {
                 }
                 album.addMusic(musicFile);
 
-                MusicArtist musicArtist = getOrCreateArtist(artist);
+                LOGGER.info(artistId);
+                final String fixedArtistId = artistId.replace(" ", "_");
+                MusicArtist musicArtist = getOrCreateArtist(fixedArtistId, artist);
                 musicArtist.addAlbum(albumId);
 
                 SONGS.put(id, musicFile);
@@ -130,14 +136,14 @@ public class MusicDatabase {
         return albumArtUri;
     }
 
-    public static MusicArtist getOrCreateArtist(final String artistName) {
-        MusicArtist artist = ARTISTS.get(artistName);
+    public static MusicArtist getOrCreateArtist(final String artistId, final String artistName) {
+        MusicArtist artist = ARTISTS.get(artistId);
         if(artist != null){
             return artist;
         }
-        LOGGER.info("Creating artist: " + artistName);
-        artist = new MusicArtist(artistName);
-        ARTISTS.put(artistName, artist);
+        LOGGER.info("Creating artist: " + artistId + " " + artistName);
+        artist = new MusicArtist(artistId, artistName);
+        ARTISTS.put(artistId, artist);
         return artist;
     }
 

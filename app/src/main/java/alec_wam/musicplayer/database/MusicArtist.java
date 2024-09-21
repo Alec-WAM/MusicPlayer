@@ -5,12 +5,18 @@ import java.util.Set;
 
 public class MusicArtist {
 
+    private String id;
     private String name;
     private Set<String> albumIds;
 
-    public MusicArtist(String name) {
+    public MusicArtist(String id, String name) {
+        this.id = id;
         this.name = name;
         this.albumIds = new HashSet<>();
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getName() {

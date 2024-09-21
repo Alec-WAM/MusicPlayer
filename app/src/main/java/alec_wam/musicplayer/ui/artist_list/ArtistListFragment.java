@@ -82,6 +82,6 @@ public class ArtistListFragment extends Fragment implements ArtistListAdaptor.On
 
     @Override
     public void onArtistClick(MusicArtist musicArtist) {
-        FragmentUtils.openArtistPage(this.getView(), musicArtist.getName(), R.id.action_navigation_artist_list_to_navigation_artist);
+        FragmentUtils.openArtistPage(this.getView(), musicArtist.getId(), R.id.action_navigation_artist_list_to_navigation_artist);
     }
 }
