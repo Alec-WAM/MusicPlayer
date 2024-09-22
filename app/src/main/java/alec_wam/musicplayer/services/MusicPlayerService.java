@@ -13,6 +13,9 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -40,6 +43,8 @@ import androidx.media3.session.MediaLibraryService;
 import androidx.media3.session.MediaSession;
 import androidx.media3.session.SessionError;
 
+import static androidx.media3.session.SessionError.ERROR_NOT_SUPPORTED;
+
 public class MusicPlayerService extends MediaLibraryService {
 
     private final static Logger LOGGER = Logger.getLogger("MusicPlayerService");
@@ -59,7 +64,7 @@ public class MusicPlayerService extends MediaLibraryService {
     private Queue<Long> queue = new LinkedList<>();
     private boolean isPaused = false;
 
-    private MusicSessionManager sessionManager;
+    private MusicPlayerSavedDataManager musicPlayerSavedDataManager;
 
     public MusicPlayerService() {
     }
@@ -69,9 +74,8 @@ public class MusicPlayerService extends MediaLibraryService {
         super.onCreate();
         LOGGER.info("Created MusicService");
         player = new ExoPlayer.Builder(this).build();
-        sessionManager = new MusicSessionManager(this.getApplicationContext());
-        mediaLibrarySession = new MediaLibrarySession.Builder(this, player, new LibrarySessionCallback(sessionManager)).build();
-
+        musicPlayerSavedDataManager = new MusicPlayerSavedDataManager(this.getApplicationContext());
+        mediaLibrarySession = new MediaLibrarySession.Builder(this, player, new LibrarySessionCallback(musicPlayerSavedDataManager)).build();
 
         player.addListener(new Player.Listener() {
             @Override
@@ -98,15 +102,15 @@ public class MusicPlayerService extends MediaLibraryService {
         );
         LOGGER.info("Registered LocalBroadcastManager");
 
-        sessionManager.loadMusicSession(this.player);
+        musicPlayerSavedDataManager.loadMusicSession(this.player);
     }
 
     public class LibrarySessionCallback implements MediaLibraryService.MediaLibrarySession.Callback {
 
-        private final MusicSessionManager sessionManager;
+        private final MusicPlayerSavedDataManager playerSavedDataManager;
 
-        public LibrarySessionCallback(MusicSessionManager sessionManager) {
-            this.sessionManager = sessionManager;
+        public LibrarySessionCallback(MusicPlayerSavedDataManager sessionManager) {
+            this.playerSavedDataManager = sessionManager;
         }
 
         @NonNull
@@ -118,7 +122,7 @@ public class MusicPlayerService extends MediaLibraryService {
         ) {
             SettableFuture<MediaSession.MediaItemsWithStartPosition> settableFuture = SettableFuture.create();
             settableFuture.addListener(() -> {
-                MediaSession.MediaItemsWithStartPosition resumptionPlaylist = sessionManager.getResumption();
+                MediaSession.MediaItemsWithStartPosition resumptionPlaylist = playerSavedDataManager.getResumption();
                 settableFuture.set(resumptionPlaylist);
             }, MoreExecutors.directExecutor());
             return settableFuture;
@@ -136,7 +140,6 @@ public class MusicPlayerService extends MediaLibraryService {
             return Util.transformFutureAsync(
                     onAddMediaItems(mediaSession, controller, mediaItems),
                     (mediaItemList) -> {
-                        LOGGER.info("Added Items: " + mediaItemList);
                         if(mediaItemList.size() == 1){
                             return buildAlbumMediaItemList(mediaItemList.get(0), startIndex, startPositionMs);
                         }
@@ -156,6 +159,8 @@ public class MusicPlayerService extends MediaLibraryService {
             if(musicFile !=null){
                 MusicAlbum album = MusicDatabase.getAlbumById(musicFile.getAlbumId());
                 if(album !=null){
+                    playerSavedDataManager.addRecentAlbum(album.getAlbumId());
+
                     List<MusicFile> albumMusicFiles = album.getAllMusicFiles();
                     for(int i = 0; i < albumMusicFiles.size(); i++) {
                         MusicFile albumMusicFile = albumMusicFiles.get(i);
@@ -195,12 +200,33 @@ public class MusicPlayerService extends MediaLibraryService {
             return Futures.immediateFuture(fixedMediaItems);
         }
 
+        @OptIn(markerClass = UnstableApi.class)
         @NonNull
         @Override
         public ListenableFuture<LibraryResult<MediaItem>> onGetLibraryRoot(
                 @NonNull MediaLibrarySession session,
                 @NonNull MediaSession.ControllerInfo controller,
                 @NonNull LibraryParams params) {
+
+            Bundle extras = session.getSessionExtras();
+//            if(extras !=null){
+//                LOGGER.info("Root SessionExtras: " + extras.toString());
+//            }
+//
+//            Bundle hints = controller.getConnectionHints();
+//            if(hints !=null){
+//                LOGGER.info("Root getConnectionHints: " + hints.toString());
+//            }
+//
+//            if(params !=null){
+//                LOGGER.info("Root LibraryParams: " + params.extras.toString());
+//                if(params.isRecent) {
+//                    LOGGER.info("Recent: " + "root");
+//                }
+//                if(params.isSuggested) {
+//                    LOGGER.info("Suggested: " + "root");
+//                }
+//            }
 
             MediaItem rootMediaItem = new MediaItem.Builder()
                     .setMediaId("root_library")
@@ -217,6 +243,7 @@ public class MusicPlayerService extends MediaLibraryService {
             return Futures.immediateFuture(libraryRootResult);
         }
 
+        @OptIn(markerClass = UnstableApi.class)
         @NonNull
         @Override
         public ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetChildren(
@@ -228,7 +255,28 @@ public class MusicPlayerService extends MediaLibraryService {
                 @Nullable LibraryParams params) {
             List<MediaItem> mediaItems = new ArrayList<>();
 
+//            LOGGER.info("Children: " + parentId);
+//            if(params !=null){
+//                LOGGER.info("Children LibraryParams: " + parentId + " " + params.extras.toString());
+//               if(params.isRecent) {
+//                   LOGGER.info("Recent: " + parentId);
+//               }
+//                if(params.isSuggested) {
+//                    LOGGER.info("Suggested: " + parentId);
+//                }
+//            }
+
             if(parentId.equalsIgnoreCase("root_library")){
+                // MediaItem for "Recent"
+                MediaItem recentCategory = new MediaItem.Builder()
+                        .setMediaId("root_recent")
+                        .setMediaMetadata(new MediaMetadata.Builder()
+                                .setTitle("Recent")
+                                .setIsBrowsable(true)
+                                .setIsPlayable(false)
+                                .build())
+                        .build();
+
                 // MediaItem for "Artists"
                 MediaItem artistsCategory = new MediaItem.Builder()
                         .setMediaId("root_artists")
@@ -250,11 +298,33 @@ public class MusicPlayerService extends MediaLibraryService {
                         .build();
 
                 // Add these root items to the list
+                mediaItems.add(recentCategory);
                 mediaItems.add(artistsCategory);
                 mediaItems.add(albumsCategory);
             }
+            else if(parentId.equalsIgnoreCase("root_recent")){
+                List<String> recentAlbums = new ArrayList<>(this.playerSavedDataManager.getRecentAlbums());
+                Collections.reverse(recentAlbums);
+                for(String albumId : recentAlbums){
+                    MusicAlbum album = MusicDatabase.getAlbumById(albumId);
+                    if(album == null)continue;
+                    MediaItem albumMediaItem = new MediaItem.Builder()
+                            .setMediaId("album_" + album.getAlbumId())
+                            .setMediaMetadata(new MediaMetadata.Builder()
+                                    .setTitle(album.getName())
+                                    .setArtworkUri(album.getAlbumArtUri())
+                                    .setArtist(album.getArtist())
+                                    .setIsBrowsable(true)
+                                    .setIsPlayable(false)
+                                    .build())
+                            .build();
+                    mediaItems.add(albumMediaItem);
+                }
+            }
             else if(parentId.equalsIgnoreCase("root_artists")){
-                for(MusicArtist artist : MusicDatabase.ARTISTS.values()){
+                List<MusicArtist> sortedArtists = new ArrayList<>(MusicDatabase.ARTISTS.values());
+                sortedArtists.sort(Comparator.comparing(a -> a.getName().toLowerCase()));
+                for(MusicArtist artist : sortedArtists){
                     MediaItem artistMediaItem = new MediaItem.Builder()
                             .setMediaId("artist_" + artist.getId())
                             .setMediaMetadata(new MediaMetadata.Builder()
@@ -291,7 +361,9 @@ public class MusicPlayerService extends MediaLibraryService {
                 }
             }
             else if(parentId.equalsIgnoreCase("root_albums")){
-                for(MusicAlbum album : MusicDatabase.ALBUMS.values()){
+                List<MusicAlbum> sortedAlbums = new ArrayList<>(MusicDatabase.ALBUMS.values());
+                sortedAlbums.sort(Comparator.comparing(a -> a.getName().toLowerCase()));
+                for(MusicAlbum album : sortedAlbums){
                     MediaItem albumMediaItem = new MediaItem.Builder()
                             .setMediaId("album_" + album.getAlbumId())
                             .setMediaMetadata(new MediaMetadata.Builder()
@@ -313,9 +385,9 @@ public class MusicPlayerService extends MediaLibraryService {
                 if(album !=null){
                     for(MusicFile musicFile : album.getAllMusicFiles()){
                         if(musicFile !=null){
-                            LOGGER.info("URI: " + musicFile.getUri());
+//                            LOGGER.info("URI: " + musicFile.getUri());
                             MediaItem mediaItem = MusicPlayerService.buildBrowserMediaItem(musicFile, true);
-                            LOGGER.info("Has RequestMeta: " + (mediaItem.requestMetadata !=null));
+//                            LOGGER.info("Has RequestMeta: " + (mediaItem.requestMetadata !=null));
                             mediaItems.add(mediaItem);
                         }
                     }
@@ -339,6 +411,67 @@ public class MusicPlayerService extends MediaLibraryService {
             }
             return Futures.immediateFuture(LibraryResult.ofError(SessionError.ERROR_BAD_VALUE));
         }
+
+        @OptIn(markerClass = UnstableApi.class)
+        @NonNull
+        @Override
+        public ListenableFuture<LibraryResult<Void>> onSearch(
+                MediaLibrarySession session,
+                MediaSession.ControllerInfo browser,
+                String query,
+                @Nullable LibraryParams params) {
+//            LOGGER.info("onSearch query: " + query);
+//            if(params !=null){
+//                LOGGER.info("onSearch LibraryParams: " + query + " " + params.extras.toString());
+//                if(params.isRecent) {
+//                    LOGGER.info("Recent: " + query);
+//                }
+//                if(params.isSuggested) {
+//                    LOGGER.info("Suggested: " + query);
+//                }
+//            }
+            return Futures.submitAsync(() -> {
+                try {
+                    List<MediaItem> searchResults = MusicPlayerService.search(query);
+                    if (!searchResults.isEmpty()) {
+                        session.notifySearchResultChanged(browser, query, searchResults.size(), params);
+                    }
+                    return Futures.immediateFuture(LibraryResult.ofVoid(params));
+                } catch (Exception e) {
+                    return Futures.immediateFuture(LibraryResult.ofError(SessionError.ERROR_BAD_VALUE));
+                }
+            }, MoreExecutors.directExecutor());
+        }
+
+        @OptIn(markerClass = UnstableApi.class)
+        @NonNull
+        @Override
+        public ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetSearchResult(
+                MediaLibrarySession session,
+                MediaSession.ControllerInfo browser,
+                String query,
+                @IntRange(from = 0) int page,
+                @IntRange(from = 1) int pageSize,
+                @Nullable LibraryParams params) {
+//            LOGGER.info("onGetSearchResult query: " + query);
+//            if(params !=null){
+//                LOGGER.info("onGetSearchResult LibraryParams: " + query + " " + params.extras.toString());
+//                if(params.isRecent) {
+//                    LOGGER.info("Recent: " + query);
+//                }
+//                if(params.isSuggested) {
+//                    LOGGER.info("Suggested: " + query);
+//                }
+//            }
+            return Futures.submitAsync(() -> {
+                try {
+                    List<MediaItem> searchResults = MusicPlayerService.search(query);
+                    return Futures.immediateFuture(LibraryResult.ofItemList(searchResults, params));
+                } catch (Exception e) {
+                    return Futures.immediateFuture(LibraryResult.ofError(SessionError.ERROR_BAD_VALUE));
+                }
+            }, MoreExecutors.directExecutor());
+        }
     }
 
 
@@ -347,7 +480,7 @@ public class MusicPlayerService extends MediaLibraryService {
         public void onReceive(Context context, Intent intent) {
             if (intent != null) {
                 if(INTENT_PLAY_SONG.equalsIgnoreCase(intent.getAction())){
-                    LOGGER.info("BroadcastReceiver: Play Song Message Received");
+//                    LOGGER.info("BroadcastReceiver: Play Song Message Received");
                     long songId = intent.getLongExtra(BUNDLE_PLAY_SONG_SONG, -1);
                     String albumId = intent.getStringExtra(BUNDLE_PLAY_SONG_ALBUM);
                     if(songId > -1L) {
@@ -355,7 +488,7 @@ public class MusicPlayerService extends MediaLibraryService {
                     }
                 }
                 if(INTENT_PAUSE_SONG.equalsIgnoreCase(intent.getAction())) {
-                    LOGGER.info("BroadcastReceiver: Pause Song Message Received");
+//                    LOGGER.info("BroadcastReceiver: Pause Song Message Received");
                     boolean paused = intent.getBooleanExtra(BUNDLE_PAUSE_SONG, false);
                     if(paused){
                         MusicPlayerService.this.pauseSong();
@@ -365,7 +498,7 @@ public class MusicPlayerService extends MediaLibraryService {
                     }
                 }
                 if(INTENT_UPDATE_QUEUE.equalsIgnoreCase(intent.getAction())) {
-                    LOGGER.info("BroadcastReceiver: Update Queue Message Received");
+//                    LOGGER.info("BroadcastReceiver: Update Queue Message Received");
                     long[] songs = intent.getLongArrayExtra(BUNDLE_UPDATE_QUEUE_SONGS);
                     final boolean wasEmpty = MusicPlayerService.this.isQueueEmpty();
                     MusicPlayerService.this.addSongs(songs);
@@ -374,7 +507,7 @@ public class MusicPlayerService extends MediaLibraryService {
                     }
                 }
                 if(INTENT_CLEAR_QUEUE.equalsIgnoreCase(intent.getAction())) {
-                    LOGGER.info("BroadcastReceiver: Clear Queue Message Received");
+//                    LOGGER.info("BroadcastReceiver: Clear Queue Message Received");
                     MusicPlayerService.this.clearQueue();
                 }
             }
@@ -428,6 +561,28 @@ public class MusicPlayerService extends MediaLibraryService {
         return mediaItem;
     }
 
+    public static MediaItem buildBrowsableMediaItemAlbum(MusicAlbum album){
+        MediaItem albumMediaItem = new MediaItem.Builder()
+                .setMediaId("album_" + album.getAlbumId())
+                .setMediaMetadata(new MediaMetadata.Builder()
+                        .setTitle(album.getName())
+                        .setArtworkUri(album.getAlbumArtUri())
+                        .setArtist(album.getArtist())
+                        .setIsBrowsable(true)
+                        .setIsPlayable(false)
+                        .build())
+                .build();
+        return albumMediaItem;
+    }
+
+    public static List<MediaItem> search(String query){
+        List<MediaItem> mediaItems = new ArrayList<>();
+
+        List<MediaItem> foundAlbums = MusicDatabase.ALBUMS.values().stream().filter((album) -> album.getName().toLowerCase().startsWith(query.toLowerCase())).map(MusicPlayerService::buildBrowsableMediaItemAlbum).toList();
+        mediaItems.addAll(foundAlbums);
+        return mediaItems;
+    }
+
     public void addSong(long song){
         MusicFile musicFile = MusicDatabase.SONGS.get(song);
         if(musicFile !=null){
@@ -449,6 +604,8 @@ public class MusicPlayerService extends MediaLibraryService {
         LOGGER.info("Playing Song...");
         MusicAlbum album = MusicDatabase.getAlbumById(albumId);
         if(album !=null){
+            musicPlayerSavedDataManager.addRecentAlbum(albumId);
+
             final List<MusicFile> allSongs = album.getAllMusicFiles();
             final int songIndex = IntStream.range(0, allSongs.size())
                     .filter(i -> allSongs.get(i).getId() == songId)
@@ -487,16 +644,16 @@ public class MusicPlayerService extends MediaLibraryService {
             // Make sure the service is not in foreground.
             player.pause();
         }
-        if(sessionManager !=null && player !=null){
-            this.sessionManager.saveMusicSession(this.player);
+        if(musicPlayerSavedDataManager !=null && player !=null){
+            this.musicPlayerSavedDataManager.saveMusicSession(this.player);
         }
         stopSelf();
     }
 
     @Override
     public void onDestroy() {
-        if(sessionManager !=null && player !=null){
-            this.sessionManager.saveMusicSession(this.player);
+        if(musicPlayerSavedDataManager !=null && player !=null){
+            this.musicPlayerSavedDataManager.saveMusicSession(this.player);
         }
         mediaLibrarySession.getPlayer().release();
         mediaLibrarySession.release();
