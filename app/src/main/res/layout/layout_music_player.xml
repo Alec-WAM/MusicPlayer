@@ -34,6 +34,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="?attr/colorOnSurface"
                 app:icon="@drawable/ic_minimize"
+                app:iconSize="30dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -44,6 +45,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="?attr/colorOnSurface"
                 app:icon="@drawable/ic_menu_button"
+                app:iconSize="30dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -70,16 +72,24 @@
 
             <TextView
                 android:id="@+id/music_player_song_name"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
-                android:textSize="20sp"
+                android:ellipsize="marquee"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:scrollHorizontally="true"
+                android:singleLine="true"
+                android:textSize="24sp"
+                android:textStyle="bold"
                 tools:text="Album Name" />
 
             <TextView
                 android:id="@+id/music_player_song_artist"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textSize="20sp"
                 tools:text="Artist" />
         </LinearLayout>
 
@@ -124,41 +134,77 @@
                     tools:text="1:00" />
             </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/music_player_control_button_container"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:orientation="horizontal">
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/music_player_control_prev_button"
+                    android:id="@+id/music_player_control_shuffle"
                     style="?attr/materialIconButtonStyle"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/music_player_control_button_container"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:iconSize="30dp"
                     android:textColor="?attr/colorOnSurface"
-                    app:icon="@drawable/media3_icon_previous" />
+                    app:icon="@drawable/media3_icon_shuffle_off"
+                    app:iconSize="30dp" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/music_player_control_play_button"
-                    style="?attr/materialIconButtonFilledStyle"
+                <LinearLayout
+                    android:id="@+id/music_player_control_button_container"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:iconSize="40dp"
-                    android:textColor="?attr/colorOnSurface"
-                    app:icon="@drawable/media3_icon_play" />
+                    android:layout_gravity="center_horizontal"
+                    android:orientation="horizontal"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/music_player_control_prev_button"
+                        style="?attr/materialIconButtonStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="?attr/colorOnSurface"
+                        app:icon="@drawable/media3_icon_previous"
+                        app:iconSize="30dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/music_player_control_play_button"
+                        style="?attr/materialIconButtonFilledStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="?attr/colorOnSurface"
+                        app:icon="@drawable/media3_icon_play"
+                        app:iconSize="40dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/music_player_control_next_button"
+                        style="?attr/materialIconButtonStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="?attr/colorOnSurface"
+                        app:icon="@drawable/media3_icon_next"
+                        app:iconSize="30dp" />
+
+                </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/music_player_control_next_button"
+                    android:id="@+id/music_player_control_repeat"
                     style="?attr/materialIconButtonStyle"
+                    app:layout_constraintStart_toEndOf="@id/music_player_control_button_container"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:iconSize="30dp"
                     android:textColor="?attr/colorOnSurface"
-                    app:icon="@drawable/media3_icon_next" />
+                    app:icon="@drawable/media3_icon_repeat_off"
+                    app:iconSize="30dp" />
 
-            </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 

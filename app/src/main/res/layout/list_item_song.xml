@@ -34,6 +34,7 @@
             android:ellipsize="end"
             android:maxLines="2"
             android:textSize="18sp"
+            android:textStyle="bold"
             tools:text="Title" />
 
         <TextView

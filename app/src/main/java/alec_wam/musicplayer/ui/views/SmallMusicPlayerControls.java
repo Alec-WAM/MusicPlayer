@@ -126,6 +126,10 @@ public class SmallMusicPlayerControls extends LinearLayout implements Player.Lis
                     .into(albumImageView);
             songTitle.setText(mediaItem.mediaMetadata.title);
             songArtist.setText(mediaItem.mediaMetadata.artist);
+
+            if(this.getVisibility() != View.VISIBLE) {
+                setVisibility(View.VISIBLE);
+            }
         }
     }
 

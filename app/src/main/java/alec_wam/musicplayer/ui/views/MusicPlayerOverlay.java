@@ -33,6 +33,10 @@ import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.Player;
 import androidx.media3.session.MediaController;
 
+import static androidx.media3.common.Player.REPEAT_MODE_ALL;
+import static androidx.media3.common.Player.REPEAT_MODE_OFF;
+import static androidx.media3.common.Player.REPEAT_MODE_ONE;
+
 public class MusicPlayerOverlay extends ConstraintLayout implements Player.Listener {
 
     private static final Logger LOGGER = Logger.getLogger("MusicPlayerOverlay");
@@ -55,6 +59,8 @@ public class MusicPlayerOverlay extends ConstraintLayout implements Player.Liste
     public MaterialButton prevButton;
     public MaterialButton playPauseButton;
     public MaterialButton nextButton;
+    public MaterialButton shuffleButton;
+    public MaterialButton repeatButton;
 
     public FrameLayout songMenu;
     public BottomSheetBehavior songMenuBehavior;
@@ -102,6 +108,7 @@ public class MusicPlayerOverlay extends ConstraintLayout implements Player.Liste
         // Initialize child views
         albumImageView = findViewById(R.id.music_player_album_image);
         songTitle = findViewById(R.id.music_player_song_name);
+        songTitle.setSelected(true);
         songArtist = findViewById(R.id.music_player_song_artist);
 
         seekBar = findViewById(R.id.music_player_control_seekbar);
@@ -167,6 +174,42 @@ public class MusicPlayerOverlay extends ConstraintLayout implements Player.Liste
 
         updatePrevNextButtons();
 
+        shuffleButton = findViewById(R.id.music_player_control_shuffle);
+        shuffleButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(mediaController == null)return;
+                final boolean oldShuffle = mediaController.getShuffleModeEnabled();
+                mediaController.setShuffleModeEnabled(!oldShuffle);
+            }
+        });
+
+        repeatButton = findViewById(R.id.music_player_control_repeat);
+        repeatButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(mediaController == null)return;
+                int nextRepeat = -1;
+                final int currentRepeat = mediaController.getRepeatMode();
+                if(currentRepeat == REPEAT_MODE_OFF){
+                    nextRepeat = REPEAT_MODE_ONE;
+                }
+                else if(currentRepeat == REPEAT_MODE_ONE){
+                    nextRepeat = REPEAT_MODE_ALL;
+                }
+                else if(currentRepeat == REPEAT_MODE_ALL){
+                    nextRepeat = REPEAT_MODE_OFF;
+                }
+                if(nextRepeat > -1) {
+                    mediaController.setRepeatMode(nextRepeat);
+                }
+            }
+        });
+
+        if(mediaController !=null) {
+            updateRepeatAndShuffleButtons(mediaController.getRepeatMode(), mediaController.getShuffleModeEnabled());
+        }
+
 //        songMenu = findViewById(R.id.music_player_song_options);
 //        songMenuBehavior = BottomSheetBehavior.from(songMenu);
 //        songMenuBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
@@ -195,6 +238,7 @@ public class MusicPlayerOverlay extends ConstraintLayout implements Player.Liste
         updatePlayPauseButton(controller.isPlaying());
         updateSeekBarProgress();
         updatePrevNextButtons();
+        updateRepeatAndShuffleButtons(controller.getRepeatMode(), controller.getShuffleModeEnabled());
     }
 
     public void showOverlay(){
@@ -243,6 +287,26 @@ public class MusicPlayerOverlay extends ConstraintLayout implements Player.Liste
             prevButton.setEnabled(mediaController.hasPreviousMediaItem());
             nextButton.setEnabled(mediaController.hasNextMediaItem());
         }
+    }
+
+    public void updateRepeatAndShuffleButtons(@Player.RepeatMode int repeatMode, boolean shuffleMode){
+        LOGGER.info("Updating Repeat/Shuffle: " + repeatMode + " " + shuffleMode);
+        int repeatIcon = androidx.media3.session.R.drawable.media3_icon_repeat_off;
+
+        if(repeatMode == REPEAT_MODE_ONE){
+            repeatIcon = androidx.media3.session.R.drawable.media3_icon_repeat_one;
+        }
+        else if(repeatMode == REPEAT_MODE_ALL){
+            repeatIcon = androidx.media3.session.R.drawable.media3_icon_repeat_all;
+        }
+
+        int shuffleIcon = androidx.media3.session.R.drawable.media3_icon_shuffle_off;
+        if(shuffleMode){
+            shuffleIcon = androidx.media3.session.R.drawable.media3_icon_shuffle_on;
+        }
+
+        repeatButton.setIcon(getResources().getDrawable(repeatIcon, getContext().getTheme()));
+        shuffleButton.setIcon(getResources().getDrawable(shuffleIcon, getContext().getTheme()));
     }
 
     public void updateSeekBarProgress(){
@@ -316,5 +380,15 @@ public class MusicPlayerOverlay extends ConstraintLayout implements Player.Liste
             seekBar.setMax((int) mediaController.getDuration());
             songLengthText.setText(Utils.convertMillisecondsToTimeString(mediaController.getDuration()));
         }
+    }
+
+    @Override
+    public void onRepeatModeChanged(@Player.RepeatMode int repeatMode) {
+        this.updateRepeatAndShuffleButtons(repeatMode, mediaController.getShuffleModeEnabled());
+    }
+
+    @Override
+    public void onShuffleModeEnabledChanged(boolean shuffleModeEnabled) {
+        this.updateRepeatAndShuffleButtons(mediaController.getRepeatMode(), shuffleModeEnabled);
     }
 }

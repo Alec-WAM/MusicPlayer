@@ -1,5 +1,7 @@
 package alec_wam.musicplayer.data;
 
+import android.util.Log;
+
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
@@ -48,6 +50,7 @@ public class MusicSessionData {
 
     public long loadToPlayer(ExoPlayer player) {
         List<MediaItem> mediaItems = this.getMediaItems();
+        Log.i("MusicSessionData", "Found MediaItems: " + mediaItems.size());
         player.setMediaItems(mediaItems);
         if(playingSongIndex > -1){
             player.seekTo(playingSongIndex, Math.max(playingSongProgress, 0));

@@ -6,12 +6,14 @@
     style="@style/Widget.Material3.BottomSheet"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:paddingHorizontal="8dp"
+    android:paddingBottom="8dp">
 
     <com.google.android.material.bottomsheet.BottomSheetDragHandleView
         android:id="@+id/music_player_song_header_drag_handle"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content" />
 
     <LinearLayout
         android:id="@+id/music_player_song_menu_header_container"
@@ -42,10 +44,11 @@
                 android:id="@+id/music_player_song_menu_header_song_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="?attr/colorOnSurface"
                 android:ellipsize="end"
                 android:maxLines="2"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="18sp"
+                android:textStyle="bold"
                 tools:text="Song Title" />
 
             <TextView
@@ -64,8 +67,8 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginVertical="5dp"
-        app:tint="?attr/colorOnSurface"
-        android:background="?android:attr/listDivider" />
+        android:background="?android:attr/listDivider"
+        app:tint="?attr/colorOnSurface" />
 
     <LinearLayout
         android:id="@+id/music_player_song_menu_view_album_container"
@@ -76,10 +79,10 @@
 
         <ImageView
             android:id="@+id/music_player_song_menu_view_album_icon"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            app:tint="?attr/colorOnSurface"
-            app:srcCompat="@drawable/ic_disk" />
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:srcCompat="@drawable/ic_disk"
+            app:tint="?attr/colorOnSurface" />
 
         <TextView
             android:id="@+id/music_player_song_menu_view_album_text"
@@ -88,9 +91,9 @@
             android:layout_gravity="center_vertical"
             android:layout_marginLeft="5dp"
             android:layout_weight="1"
-            android:textColor="?attr/colorOnSurface"
             android:text="View Album"
-            android:textSize="24sp" />
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="20sp" />
     </LinearLayout>
 
     <LinearLayout
@@ -102,10 +105,10 @@
 
         <ImageView
             android:id="@+id/music_player_song_menu_view_artist_icon"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            app:tint="?attr/colorOnSurface"
-            app:srcCompat="@drawable/ic_unknown_artist" />
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:srcCompat="@drawable/ic_unknown_artist"
+            app:tint="?attr/colorOnSurface" />
 
         <TextView
             android:id="@+id/music_player_song_menu_view_artist_text"
@@ -114,8 +117,8 @@
             android:layout_gravity="center_vertical"
             android:layout_marginLeft="5dp"
             android:layout_weight="1"
-            android:textColor="?attr/colorOnSurface"
             android:text="View Artist"
-            android:textSize="24sp" />
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="20sp" />
     </LinearLayout>
 </LinearLayout>

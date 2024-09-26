@@ -68,6 +68,40 @@
                         tools:text="Album Tracks" />
                 </LinearLayout>
             </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/album_info_button_container"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="8dp"
+                android:layout_weight="1"
+                android:gravity="center_horizontal"
+                android:orientation="horizontal"
+                android:paddingVertical="2dp">
+
+                <Button
+                    android:id="@+id/album_info_button_play_album"
+                    style="@style/Widget.Material3.Button.Icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="4dp"
+                    android:layout_weight="1"
+                    android:text="Play"
+                    app:icon="@drawable/ic_play" />
+
+                <Button
+                    android:id="@+id/album_info_button_shuffle_album"
+                    style="@style/Widget.Material3.Button.TonalButton.Icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="4dp"
+                    android:layout_weight="1"
+                    android:text="Shuffle"
+                    app:icon="@drawable/ic_shuffle" />
+
+            </LinearLayout>
+
         </LinearLayout>
 
         <LinearLayout

@@ -29,6 +29,13 @@ public class MusicPlayerUtils {
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 
+    public static void playAlbum(Context context, String albumId, boolean shuffle){
+        Intent intent = new Intent(MusicPlayerService.INTENT_PLAY_ALBUM);
+        intent.putExtra(MusicPlayerService.BUNDLE_PLAY_ALBUM_ALBUM, albumId);
+        intent.putExtra(MusicPlayerService.BUNDLE_PLAY_ALBUM_SHUFFLE, shuffle);
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+    }
+
     public static void broadcastSongChange(Context context, long songId){
         Intent intent = new Intent(INTENT_SONG_CHANGE);
         intent.putExtra(BUNDLE_SONG_CHANGE_SONG, songId);

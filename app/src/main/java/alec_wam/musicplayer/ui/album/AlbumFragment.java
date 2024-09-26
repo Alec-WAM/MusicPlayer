@@ -11,11 +11,13 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -109,6 +111,22 @@ public class AlbumFragment extends Fragment {
                 .into(cover);
         titleView.setText(title);
         artistView.setText(artist);
+
+        Button playAlbumButton = binding.albumInfoButtonPlayAlbum;
+        playAlbumButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                MusicPlayerUtils.playAlbum(getContext(), albumId, false);
+            }
+        });
+
+        Button shuffleAlbumButton = binding.albumInfoButtonShuffleAlbum;
+        shuffleAlbumButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                MusicPlayerUtils.playAlbum(getContext(), albumId, true);
+            }
+        });
 
         this.songViews = new HashMap<>();
         if(disks !=null && disks.keySet().size() > 0){

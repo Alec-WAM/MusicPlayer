@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import alec_wam.musicplayer.data.MusicSessionData;
-import alec_wam.musicplayer.data.UniqueFIFOList;
 import androidx.annotation.OptIn;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.ExoPlayer;

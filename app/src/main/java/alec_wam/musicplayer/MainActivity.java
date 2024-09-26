@@ -104,7 +104,6 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
 
         checkPermissions();
-        startMusicPlayerService();
 
         playerView = binding.playerView;
         playerView.setVisibility(View.GONE);
@@ -122,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
 
         smallMusicPlayerControls = binding.mediaPlayerSmall;
         smallMusicPlayerControls.setPlayerView(this.playerView);
+        smallMusicPlayerControls.setVisibility(View.GONE);
 
         SessionToken sessionToken = new SessionToken(this, new ComponentName(this, MusicPlayerService.class));
         mediaControllerFuture = new MediaController.Builder(this, sessionToken).buildAsync();
@@ -179,8 +179,9 @@ public class MainActivity extends AppCompatActivity {
                     new String[]{android.Manifest.permission.READ_MEDIA_AUDIO},
                     REQUEST_CODE_PERMISSIONS
             );
-        } else {
-            MusicDatabase.buildAlbumList(this);
+        }
+        else {
+            startMusicPlayerService();
         }
     }
 
@@ -189,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                MusicDatabase.buildAlbumList(this);
+                startMusicPlayerService();
             } else {
                 Toast.makeText(this, "Permission denied to read media files", Toast.LENGTH_SHORT).show();
             }
