@@ -1,5 +1,8 @@
 package alec_wam.musicplayer.services;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -29,6 +32,7 @@ import java.util.concurrent.Future;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
+import alec_wam.musicplayer.R;
 import alec_wam.musicplayer.database.MusicAlbum;
 import alec_wam.musicplayer.database.MusicArtist;
 import alec_wam.musicplayer.database.MusicDatabase;
@@ -38,6 +42,7 @@ import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.media3.common.AudioAttributes;
@@ -72,6 +77,9 @@ public class MusicPlayerService extends MediaLibraryService {
     public static final String BUNDLE_UPDATE_QUEUE_SONGS = "songs";
     public static final String INTENT_CLEAR_QUEUE = "MP_CLEAR_QUEUE";
 
+    public static final String NOTIFICATION_CHANNEL_ID = "music_player_service";
+    public static final int NOTIFICATION_ID = 1;
+
     private Handler backgroundHandler;
 
     public static MediaItem currentSong;
@@ -104,7 +112,27 @@ public class MusicPlayerService extends MediaLibraryService {
             stopSelf();
             return START_NOT_STICKY;
         }
+
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    private Notification createNotification() {
+        NotificationChannel channel = new NotificationChannel(
+                NOTIFICATION_CHANNEL_ID,
+                "Music Service",
+                NotificationManager.IMPORTANCE_LOW
+        );
+
+        NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        manager.createNotificationChannel(channel);
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+                .setContentTitle("Music Player")
+                .setContentText("Playing music")
+                .setSmallIcon(R.drawable.ic_app_icon)
+                .setPriority(NotificationCompat.PRIORITY_LOW);
+
+        return notificationBuilder.build();
     }
 
     @Override
@@ -112,6 +140,9 @@ public class MusicPlayerService extends MediaLibraryService {
         super.onCreate();
 
         backgroundHandler = new Handler(Looper.getMainLooper());
+
+        Notification notification = createNotification();
+        startForeground(NOTIFICATION_ID, notification);
 
         if(!isLibraryBuilt) {
             Future<Boolean> future = buildAlbumListAsync();

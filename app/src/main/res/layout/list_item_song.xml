@@ -42,7 +42,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             tools:text="Subtitle" />
+
     </LinearLayout>
+
+    <CheckBox
+        android:id="@+id/item_song_fav_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:button="@drawable/sl_favorite_24dp" />
 
     <Button
         style="?attr/materialIconButtonStyle"
