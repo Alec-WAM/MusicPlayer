@@ -27,11 +27,15 @@ public class AppDatabaseRepository {
         mAllFavoriteAlbums = mFavoriteAlbumDao.getAllIds();
     }
 
-    LiveData<List<Long>> getAllFavoriteSongs(){
+    public LiveData<List<Long>> getAllFavoriteSongs(){
         return mAllFavoriteSongs;
     }
 
-    void insertFavoriteSong(long songId) {
+    public List<Long> getAllFavoriteSongsSync(){
+        return mFavoriteSongDao.getAllIdsSync();
+    }
+
+    public void insertFavoriteSong(long songId) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
             FavoriteSong favoriteSong = new FavoriteSong();
             favoriteSong.id = songId;
@@ -39,17 +43,17 @@ public class AppDatabaseRepository {
         });
     }
 
-    void deleteFavoriteSong(long songId){
+    public void deleteFavoriteSong(long songId){
         AppDatabase.databaseWriteExecutor.execute(() -> {
             mFavoriteSongDao.deleteById(songId);
         });
     }
 
-    LiveData<List<String>> getAllFavoriteAlbums(){
+    public LiveData<List<String>> getAllFavoriteAlbums(){
         return mAllFavoriteAlbums;
     }
 
-    void insertFavoriteAlbum(String albumId) {
+    public void insertFavoriteAlbum(String albumId) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
             FavoriteAlbum favoriteAlbum = new FavoriteAlbum();
             favoriteAlbum.id = albumId;
@@ -57,7 +61,7 @@ public class AppDatabaseRepository {
         });
     }
 
-    void deleteFavoriteAlbum(String albumId){
+    public void deleteFavoriteAlbum(String albumId){
         AppDatabase.databaseWriteExecutor.execute(() -> {
             mFavoriteAlbumDao.deleteById(albumId);
         });

@@ -18,6 +18,19 @@
         android:textSize="18sp"
         tools:text="1" />
 
+    <ImageView
+        android:id="@+id/item_song_album_image"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="center"
+        android:layout_weight="0"
+        android:adjustViewBounds="true"
+        android:padding="5dp"
+        android:scaleType="fitCenter"
+        android:visibility="gone"
+        tools:srcCompat="@tools:sample/avatars"
+        tools:visibility="visible" />
+
     <LinearLayout
         android:id="@+id/item_song_title_container"
         android:layout_width="wrap_content"

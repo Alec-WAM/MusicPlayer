@@ -27,4 +27,7 @@ public interface FavoriteSongDao {
     @Query("SELECT id FROM favorite_songs")
     LiveData<List<Long>> getAllIds();
 
+    @Query("SELECT id FROM favorite_songs")
+    List<Long> getAllIdsSync();
+
 }

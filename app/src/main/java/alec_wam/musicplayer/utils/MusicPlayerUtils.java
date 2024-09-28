@@ -19,12 +19,13 @@ public class MusicPlayerUtils {
     public static final String BUNDLE_SONG_CHANGE_SONG = "song";
     public static final String BUNDLE_SONG_CHANGE_ALBUM = "album";
 
-    public static void playSong(Context context, long songId, Optional<String> albumId){
+    public static void playSong(Context context, long songId, Optional<String> albumId, boolean playFromFavorites){
         Intent intent = new Intent(MusicPlayerService.INTENT_PLAY_SONG);
         intent.putExtra(MusicPlayerService.BUNDLE_PLAY_SONG_SONG, songId);
         if(albumId.isPresent()) {
             intent.putExtra(MusicPlayerService.BUNDLE_PLAY_SONG_ALBUM, albumId.get());
         }
+        intent.putExtra(MusicPlayerService.BUNDLE_PLAY_SONG_FAVORITE_LIST, playFromFavorites);
         LOGGER.info("Sending Play Song Message");
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
@@ -32,6 +33,12 @@ public class MusicPlayerUtils {
     public static void playAlbum(Context context, String albumId, boolean shuffle){
         Intent intent = new Intent(MusicPlayerService.INTENT_PLAY_ALBUM);
         intent.putExtra(MusicPlayerService.BUNDLE_PLAY_ALBUM_ALBUM, albumId);
+        intent.putExtra(MusicPlayerService.BUNDLE_PLAY_ALBUM_SHUFFLE, shuffle);
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+    }
+
+    public static void playFavoriteSongs(Context context, boolean shuffle){
+        Intent intent = new Intent(MusicPlayerService.INTENT_PLAY_FAVORITES);
         intent.putExtra(MusicPlayerService.BUNDLE_PLAY_ALBUM_SHUFFLE, shuffle);
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }

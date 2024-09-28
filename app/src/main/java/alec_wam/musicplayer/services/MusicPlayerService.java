@@ -26,6 +26,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -33,6 +34,7 @@ import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
 import alec_wam.musicplayer.R;
+import alec_wam.musicplayer.data.database.AppDatabaseRepository;
 import alec_wam.musicplayer.database.MusicAlbum;
 import alec_wam.musicplayer.database.MusicArtist;
 import alec_wam.musicplayer.database.MusicDatabase;
@@ -68,11 +70,13 @@ public class MusicPlayerService extends MediaLibraryService {
     public static final String INTENT_PLAY_SONG = "MP_PLAY_SONG";
     public static final String BUNDLE_PLAY_SONG_SONG = "song";
     public static final String BUNDLE_PLAY_SONG_ALBUM = "album";
+    public static final String BUNDLE_PLAY_SONG_FAVORITE_LIST = "favorite_list";
     public static final String INTENT_PAUSE_SONG = "MP_PAUSE_SONG";
     public static final String BUNDLE_PAUSE_SONG = "paused";
     public static final String INTENT_PLAY_ALBUM = "MP_PLAY_ALBUM";
     public static final String BUNDLE_PLAY_ALBUM_ALBUM = "album";
     public static final String BUNDLE_PLAY_ALBUM_SHUFFLE = "shuffle";
+    public static final String INTENT_PLAY_FAVORITES = "MP_PLAY_FAVORITES";
     public static final String INTENT_UPDATE_QUEUE = "MP_UPDATE_QUEUE";
     public static final String BUNDLE_UPDATE_QUEUE_SONGS = "songs";
     public static final String INTENT_CLEAR_QUEUE = "MP_CLEAR_QUEUE";
@@ -81,6 +85,7 @@ public class MusicPlayerService extends MediaLibraryService {
     public static final int NOTIFICATION_ID = 1;
 
     private Handler backgroundHandler;
+    private ExecutorService backgroundExecutor;
 
     public static MediaItem currentSong;
     private ExoPlayer player;
@@ -89,6 +94,7 @@ public class MusicPlayerService extends MediaLibraryService {
     private boolean isPaused = false;
 
     private MusicPlayerSavedDataManager musicPlayerSavedDataManager;
+    private AppDatabaseRepository appDatabaseRepository;
     private boolean isLibraryBuilt = false;
 
     public MusicPlayerService() {
@@ -140,9 +146,12 @@ public class MusicPlayerService extends MediaLibraryService {
         super.onCreate();
 
         backgroundHandler = new Handler(Looper.getMainLooper());
+        backgroundExecutor = Executors.newSingleThreadExecutor();
 
         Notification notification = createNotification();
         startForeground(NOTIFICATION_ID, notification);
+
+        appDatabaseRepository = new AppDatabaseRepository(getApplication());
 
         if(!isLibraryBuilt) {
             Future<Boolean> future = buildAlbumListAsync();
@@ -187,6 +196,7 @@ public class MusicPlayerService extends MediaLibraryService {
         filter.addAction(INTENT_PLAY_SONG);
         filter.addAction(INTENT_PAUSE_SONG);
         filter.addAction(INTENT_PLAY_ALBUM);
+        filter.addAction(INTENT_PLAY_FAVORITES);
         filter.addAction(INTENT_UPDATE_QUEUE);
         filter.addAction(INTENT_CLEAR_QUEUE);
         LocalBroadcastManager.getInstance(this).registerReceiver(
@@ -204,8 +214,14 @@ public class MusicPlayerService extends MediaLibraryService {
 //                    LOGGER.info("BroadcastReceiver: Play Song Message Received");
                     long songId = intent.getLongExtra(BUNDLE_PLAY_SONG_SONG, -1);
                     String albumId = intent.getStringExtra(BUNDLE_PLAY_SONG_ALBUM);
+                    boolean isFromFavorites = intent.getBooleanExtra(BUNDLE_PLAY_SONG_FAVORITE_LIST, false);
                     if(songId > -1L) {
-                        MusicPlayerService.this.playSong(songId, albumId);
+                        if(isFromFavorites){
+                            MusicPlayerService.this.playFavoriteSong(songId);
+                        }
+                        else {
+                            MusicPlayerService.this.playSong(songId, albumId);
+                        }
                     }
                 }
                 if(INTENT_PAUSE_SONG.equalsIgnoreCase(intent.getAction())) {
@@ -224,6 +240,10 @@ public class MusicPlayerService extends MediaLibraryService {
                     if(albumId !=null) {
                         MusicPlayerService.this.playAlbum(albumId, shuffle);
                     }
+                }
+                if(INTENT_PLAY_FAVORITES.equalsIgnoreCase(intent.getAction())){
+                    boolean shuffle = intent.getBooleanExtra(BUNDLE_PLAY_ALBUM_SHUFFLE, false);
+                    MusicPlayerService.this.playFavoriteSongs(shuffle);
                 }
                 if(INTENT_UPDATE_QUEUE.equalsIgnoreCase(intent.getAction())) {
 //                    LOGGER.info("BroadcastReceiver: Update Queue Message Received");
@@ -345,6 +365,24 @@ public class MusicPlayerService extends MediaLibraryService {
         }
     }
 
+    private void playFavoriteSongs(boolean shuffle){
+        //Get Favorite Songs from Background Thread
+        backgroundExecutor.execute(() -> {
+            final List<Long> allFavSongIds = appDatabaseRepository.getAllFavoriteSongsSync();
+            if(allFavSongIds !=null) {
+                //Perform player actions on Main Thread
+                backgroundHandler.post(() -> {
+                    List<MediaItem> mediaItems = allFavSongIds.stream().map((songId) -> MusicDatabase.SONGS.get(songId)).map(MusicPlayerService::buildMediaItem).toList();
+                    player.setMediaItems(mediaItems);
+                    player.setShuffleModeEnabled(shuffle);
+                    player.prepare();
+                    player.play();
+                });
+            }
+        });
+    }
+
+
     private void playSong(long songId, String albumId) {
         LOGGER.info("Playing Song...");
         MusicAlbum album = MusicDatabase.getAlbumById(albumId);
@@ -373,6 +411,29 @@ public class MusicPlayerService extends MediaLibraryService {
                 player.play();
             }
         }
+    }
+
+    private void playFavoriteSong(final long favSongId){
+        //Get Favorite Songs from Background Thread
+        backgroundExecutor.execute(() -> {
+            final List<Long> allFavSongIds = appDatabaseRepository.getAllFavoriteSongsSync();
+            if(allFavSongIds !=null) {
+                final int songIndex = IntStream.range(0, allFavSongIds.size())
+                        .filter(i -> allFavSongIds.get(i) == favSongId)
+                        .findFirst()
+                        .orElse(-1);
+                //Perform player actions on Main Thread
+                backgroundHandler.post(() -> {
+                    List<MediaItem> mediaItems = allFavSongIds.stream().map((songId) -> MusicDatabase.SONGS.get(songId)).map(MusicPlayerService::buildMediaItem).toList();
+                    player.setMediaItems(mediaItems);
+                    if(songIndex > -1) {
+                        player.seekTo(songIndex, 0);
+                    }
+                    player.prepare();
+                    player.play();
+                });
+            }
+        });
     }
 
     private void pauseSong() {
@@ -404,6 +465,7 @@ public class MusicPlayerService extends MediaLibraryService {
         mediaLibrarySession.release();
         mediaLibrarySession = null;
         LocalBroadcastManager.getInstance(this).unregisterReceiver(queueUpdateReceiver);
+        backgroundExecutor.shutdown();
         super.onDestroy();
     }
 
