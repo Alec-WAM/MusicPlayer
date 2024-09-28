@@ -19,14 +19,14 @@ public class MusicPlayerUtils {
     public static final String BUNDLE_SONG_CHANGE_SONG = "song";
     public static final String BUNDLE_SONG_CHANGE_ALBUM = "album";
 
-    public static void playSong(Context context, long songId, Optional<String> albumId, boolean playFromFavorites){
+    public static void playSong(Context context, String songId, Optional<String> albumId, boolean playFromFavorites){
         Intent intent = new Intent(MusicPlayerService.INTENT_PLAY_SONG);
         intent.putExtra(MusicPlayerService.BUNDLE_PLAY_SONG_SONG, songId);
         if(albumId.isPresent()) {
             intent.putExtra(MusicPlayerService.BUNDLE_PLAY_SONG_ALBUM, albumId.get());
         }
         intent.putExtra(MusicPlayerService.BUNDLE_PLAY_SONG_FAVORITE_LIST, playFromFavorites);
-        LOGGER.info("Sending Play Song Message");
+        LOGGER.info("Sending Play Song Message: " + songId);
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 
@@ -43,7 +43,7 @@ public class MusicPlayerUtils {
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 
-    public static void broadcastSongChange(Context context, long songId){
+    public static void broadcastSongChange(Context context, String songId){
         Intent intent = new Intent(INTENT_SONG_CHANGE);
         intent.putExtra(BUNDLE_SONG_CHANGE_SONG, songId);
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);

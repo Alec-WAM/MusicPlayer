@@ -113,6 +113,7 @@ public class SmallMusicPlayerControls extends LinearLayout implements Player.Lis
             @Nullable MediaItem mediaItem,
             @Player.MediaItemTransitionReason int reason
     ){
+        LOGGER.info("MediaItemTransition");
         updateFromMediaItem(mediaItem);
     }
 
@@ -135,6 +136,7 @@ public class SmallMusicPlayerControls extends LinearLayout implements Player.Lis
 
     @Override
     public void onMediaMetadataChanged(MediaMetadata mediaMetadata) {
+        LOGGER.info("onMediaMetadataChanged");
         Drawable themed_unknown_album = ThemedDrawableUtils.getThemedIcon(getContext(), R.drawable.ic_unkown_album, com.google.android.material.R.attr.colorSecondary, Color.BLACK);
         Glide.with(this)
                 .load(mediaMetadata.artworkUri)  // URI for album art

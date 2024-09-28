@@ -12,8 +12,8 @@ public class AppDatabaseViewModel extends AndroidViewModel {
 
     private AppDatabaseRepository mRepository;
 
-    private final LiveData<List<Long>> mAllFavoriteSongs;
-    private final LiveData<List<Long>> mAllFavoriteSongsSorted;
+    private final LiveData<List<String>> mAllFavoriteSongs;
+    private final LiveData<List<String>> mAllFavoriteSongsSorted;
     private final LiveData<List<String>> mAllFavoriteAlbums;
 
     public AppDatabaseViewModel(@NonNull Application application) {
@@ -25,13 +25,13 @@ public class AppDatabaseViewModel extends AndroidViewModel {
         mAllFavoriteAlbums = mRepository.getAllFavoriteAlbums();
     }
 
-    public LiveData<List<Long>> getAllFavoriteSongs() { return mAllFavoriteSongs; }
+    public LiveData<List<String>> getAllFavoriteSongs() { return mAllFavoriteSongs; }
 
-    public LiveData<List<Long>> getAllFavoriteSongsSorted() { return mAllFavoriteSongsSorted; }
+    public LiveData<List<String>> getAllFavoriteSongsSorted() { return mAllFavoriteSongsSorted; }
 
-    public void insertFavoriteSong(long songId) { mRepository.insertFavoriteSong(songId); }
+    public void insertFavoriteSong(String songId) { mRepository.insertFavoriteSong(songId); }
 
-    public void deleteFavoriteSong(long songId) { mRepository.deleteFavoriteSong(songId); }
+    public void deleteFavoriteSong(String songId) { mRepository.deleteFavoriteSong(songId); }
 
     public LiveData<List<String>> getAllFavoriteAlbums() { return mAllFavoriteAlbums; }
 

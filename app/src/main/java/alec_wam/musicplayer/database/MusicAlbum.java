@@ -14,6 +14,7 @@ import alec_wam.musicplayer.utils.Utils;
 
 public class MusicAlbum {
     private final String albumId;
+    private final String mediaAlbumId;
     private final String name;
     private final String artist;
     private Uri albumArtUri;
@@ -21,8 +22,9 @@ public class MusicAlbum {
     private Map<Integer, List<MusicFile>> albumMusic;
 
 
-    public MusicAlbum(String albumId, String name, String artist) {
+    public MusicAlbum(String albumId, String mediaAlbumId, String name, String artist) {
         this.albumId = albumId;
+        this.mediaAlbumId = mediaAlbumId;
         this.name = name;
         this.artist = artist;
         this.albumMusic = new HashMap<>();
@@ -30,6 +32,10 @@ public class MusicAlbum {
 
     public String getAlbumId() {
         return albumId;
+    }
+
+    public String getMediaAlbumId() {
+        return mediaAlbumId;
     }
 
     public String getName() {

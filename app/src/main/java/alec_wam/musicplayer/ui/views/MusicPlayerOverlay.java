@@ -45,7 +45,7 @@ public class MusicPlayerOverlay extends ConstraintLayout implements Player.Liste
     private Handler handler = new Handler(Looper.getMainLooper());
     private Runnable seekBarRunnable;
 
-    private long mediaId;
+    private String mediaId;
 
     public Button closeButton;
     public Button menuButton;
@@ -345,7 +345,7 @@ public class MusicPlayerOverlay extends ConstraintLayout implements Player.Liste
 
     public void updateFromMediaItem(MediaItem mediaItem){
         if(mediaItem !=null){
-            this.mediaId = Long.parseLong(mediaItem.mediaId);
+            this.mediaId = mediaItem.mediaId;
             Drawable themed_unknown_album = ThemedDrawableUtils.getThemedIcon(getContext(), R.drawable.ic_unkown_album, com.google.android.material.R.attr.colorSecondary, Color.BLACK);
             Glide.with(this)
                     .load(mediaItem.mediaMetadata.artworkUri)  // URI for album art

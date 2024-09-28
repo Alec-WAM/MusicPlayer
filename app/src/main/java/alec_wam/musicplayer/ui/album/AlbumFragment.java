@@ -61,8 +61,8 @@ public class AlbumFragment extends Fragment {
 
     private String albumId;
     private boolean isFavoriteSongs;
-    private Map<Long, View> songViews;
-    private long playingSongId = -1L;
+    private Map<String, View> songViews;
+    private String playingSongId = null;
 
     public static AlbumFragment newInstance(String albumId) {
         AlbumFragment fragment = new AlbumFragment();
@@ -98,7 +98,7 @@ public class AlbumFragment extends Fragment {
 
         if(MusicPlayerService.currentSong !=null){
             LOGGER.info("Loading Current Song: " + MusicPlayerService.currentSong);
-            this.playingSongId = Long.parseLong(MusicPlayerService.currentSong.mediaId);
+            this.playingSongId = MusicPlayerService.currentSong.mediaId;
         }
 
         ImageView cover = (ImageView) binding.albumInfoCover;
@@ -283,7 +283,7 @@ public class AlbumFragment extends Fragment {
                         }
                     });
 
-                    if(track.getId() == this.playingSongId) {
+                    if(track.getId().equals(this.playingSongId)) {
                         int themeColor = ThemedDrawableUtils.getThemeColor(getContext(), com.google.android.material.R.attr.colorSecondaryContainer, R.color.colorCustomColor);
                         songView.setBackgroundColor(themeColor);
                     }
@@ -295,12 +295,12 @@ public class AlbumFragment extends Fragment {
         }
     }
 
-    private void buildFavoriteSongs(List<Long> songIds, LinearLayout song_container, LayoutInflater inflater){
+    private void buildFavoriteSongs(List<String> songIds, LinearLayout song_container, LayoutInflater inflater){
         this.songViews.clear();
         song_container.removeAllViews();
 
         for (int i = 0; i < songIds.size(); i++) {
-            final long songId = songIds.get(i);
+            final String songId = songIds.get(i);
             final MusicFile track = MusicDatabase.SONGS.get(songId);
             if(track == null){
                 continue;
@@ -311,7 +311,8 @@ public class AlbumFragment extends Fragment {
             trackNumberView.setVisibility(View.GONE);
 
             String trackAlbumId = track.getAlbumId();
-            Uri albumArtUri = MusicDatabase.getAlbumArtUri(trackAlbumId);
+            MusicAlbum musicAlbum = MusicDatabase.getAlbumById(trackAlbumId);
+            Uri albumArtUri = musicAlbum !=null ? musicAlbum.getAlbumArtUri() : null;
             if(albumArtUri !=null){
                 ImageView albumImage = (ImageView) songView.findViewById(R.id.item_song_album_image);
                 albumImage.setImageURI(albumArtUri);
@@ -357,7 +358,7 @@ public class AlbumFragment extends Fragment {
                 }
             });
 
-            if(track.getId() == this.playingSongId) {
+            if(track.getId().equals(this.playingSongId)) {
                 int themeColor = ThemedDrawableUtils.getThemeColor(getContext(), com.google.android.material.R.attr.colorSecondaryContainer, R.color.colorCustomColor);
                 songView.setBackgroundColor(themeColor);
             }
@@ -372,9 +373,9 @@ public class AlbumFragment extends Fragment {
         public void onReceive(Context context, Intent intent) {
             if (intent != null) {
                 if(INTENT_SONG_CHANGE.equalsIgnoreCase(intent.getAction())){
-                    final long lastPlayingSongId = playingSongId;
-                    long songId = intent.getLongExtra(BUNDLE_SONG_CHANGE_SONG, -1);
-                    if(songId > -1L) {
+                    final String lastPlayingSongId = playingSongId;
+                    String songId = intent.getStringExtra(BUNDLE_SONG_CHANGE_SONG);
+                    if(songId !=null) {
                         MusicFile musicFile = MusicDatabase.SONGS.get(songId);
                         if(musicFile !=null){
                             if(musicFile.getAlbumId().equals(albumId) || AlbumFragment.this.isFavoriteSongs){

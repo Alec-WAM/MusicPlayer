@@ -48,7 +48,7 @@ public class MusicPlayerSavedDataManager {
         editor.apply();
     }
 
-    public long loadMusicSession(ExoPlayer player) {
+    public String loadMusicSession(ExoPlayer player) {
         String jsonMediaSession = sharedPreferences.getString(PREF_MUSIC_SESSION, null);
         LOGGER.info("Loading Music Session");
         if (jsonMediaSession != null) {
@@ -59,7 +59,7 @@ public class MusicPlayerSavedDataManager {
                 return sessionData.loadToPlayer(player);
             }
         }
-        return -1;
+        return null;
     }
 
     @OptIn(markerClass = UnstableApi.class)

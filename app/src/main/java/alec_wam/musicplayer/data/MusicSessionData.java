@@ -15,12 +15,12 @@ import androidx.media3.exoplayer.ExoPlayer;
 
 public class MusicSessionData {
 
-    public List<Long> songIds;
+    public List<String> songIds;
     public int playingSongIndex = -1;
-    public long playingSongId = -1;
+    public String playingSongId = null;
     public long playingSongProgress = 0;
 
-    private MusicSessionData(List<Long> songIds, int playingSongIndex, long playingSongId, long playingSongProgress){
+    private MusicSessionData(List<String> songIds, int playingSongIndex, String playingSongId, long playingSongProgress){
         this.songIds = songIds;
         this.playingSongIndex = playingSongIndex;
         this.playingSongId = playingSongId;
@@ -28,17 +28,17 @@ public class MusicSessionData {
     }
 
     public static MusicSessionData saveFromPlayer(ExoPlayer player) {
-        List<Long> songIds = new ArrayList<>();
+        List<String> songIds = new ArrayList<>();
         for(int i = 0; i < player.getMediaItemCount(); i++){
             MediaItem mediaItem = player.getMediaItemAt(i);
-            songIds.add(Long.parseLong(mediaItem.mediaId));
+            songIds.add(mediaItem.mediaId);
         }
         int playingSongIndex = -1;
-        long playingSongId = -1;
+        String playingSongId = null;
         long playingSongProgress = 0;
         if(player.getCurrentMediaItem() !=null) {
             playingSongIndex = player.getCurrentMediaItemIndex();
-            playingSongId = Long.parseLong(player.getCurrentMediaItem().mediaId);
+            playingSongId = player.getCurrentMediaItem().mediaId;
             playingSongProgress = player.getCurrentPosition();
         }
         return new MusicSessionData(songIds, playingSongIndex, playingSongId, playingSongProgress);
@@ -48,7 +48,7 @@ public class MusicSessionData {
         return this.songIds.stream().map((id) -> MusicDatabase.SONGS.get(id)).map(MusicPlayerService::buildMediaItem).toList();
     }
 
-    public long loadToPlayer(ExoPlayer player) {
+    public String loadToPlayer(ExoPlayer player) {
         List<MediaItem> mediaItems = this.getMediaItems();
         Log.i("MusicSessionData", "Found MediaItems: " + mediaItems.size());
         player.setMediaItems(mediaItems);

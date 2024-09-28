@@ -26,10 +26,10 @@ public class ModalMusicPlayerSongBottomSheet extends BottomSheetDialogFragment {
 
     public static final String TAG = "ModalMusicPlayerSongBottomSheet";
 
-    private final long mediaId;
+    private final String mediaId;
     private final MusicPlayerOverlay musicPlayerOverlay;
 
-    public ModalMusicPlayerSongBottomSheet(@LayoutRes int contentLayoutId, MusicPlayerOverlay musicPlayerOverlay, long mediaId) {
+    public ModalMusicPlayerSongBottomSheet(@LayoutRes int contentLayoutId, MusicPlayerOverlay musicPlayerOverlay, String mediaId) {
         super(contentLayoutId);
         this.musicPlayerOverlay = musicPlayerOverlay;
         this.mediaId = mediaId;

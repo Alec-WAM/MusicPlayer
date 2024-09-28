@@ -85,7 +85,7 @@ public class MusicPlayerService extends MediaLibraryService {
     public static MediaItem currentSong;
     private ExoPlayer player;
     private MediaLibrarySession mediaLibrarySession;
-    private Queue<Long> queue = new LinkedList<>();
+    private Queue<String> queue = new LinkedList<>();
     private boolean isPaused = false;
 
     private MusicPlayerSavedDataManager musicPlayerSavedDataManager;
@@ -179,9 +179,9 @@ public class MusicPlayerService extends MediaLibraryService {
                     @Player.MediaItemTransitionReason int reason
             ){
                 MusicPlayerService.this.currentSong = mediaItem;
-                long mediaId = -1;
+                String mediaId = null;
                 if(mediaItem !=null) {
-                    mediaId = Long.parseLong(mediaItem.mediaId);
+                    mediaId = mediaItem.mediaId;
                 }
                 MusicPlayerUtils.broadcastSongChange(MusicPlayerService.this, mediaId);
             }
@@ -207,10 +207,10 @@ public class MusicPlayerService extends MediaLibraryService {
             if (intent != null) {
                 if(INTENT_PLAY_SONG.equalsIgnoreCase(intent.getAction())){
 //                    LOGGER.info("BroadcastReceiver: Play Song Message Received");
-                    long songId = intent.getLongExtra(BUNDLE_PLAY_SONG_SONG, -1);
+                    String songId = intent.getStringExtra(BUNDLE_PLAY_SONG_SONG);
                     String albumId = intent.getStringExtra(BUNDLE_PLAY_SONG_ALBUM);
                     boolean isFromFavorites = intent.getBooleanExtra(BUNDLE_PLAY_SONG_FAVORITE_LIST, false);
-                    if(songId > -1L) {
+                    if(songId !=null) {
                         if(isFromFavorites){
                             MusicPlayerService.this.playFavoriteSong(songId);
                         }
@@ -242,7 +242,7 @@ public class MusicPlayerService extends MediaLibraryService {
                 }
                 if(INTENT_UPDATE_QUEUE.equalsIgnoreCase(intent.getAction())) {
 //                    LOGGER.info("BroadcastReceiver: Update Queue Message Received");
-                    long[] songs = intent.getLongArrayExtra(BUNDLE_UPDATE_QUEUE_SONGS);
+                    String[] songs = intent.getStringArrayExtra(BUNDLE_UPDATE_QUEUE_SONGS);
                     final boolean wasEmpty = MusicPlayerService.this.isQueueEmpty();
                     MusicPlayerService.this.addSongs(songs);
                     if(wasEmpty) {
@@ -267,7 +267,7 @@ public class MusicPlayerService extends MediaLibraryService {
         }
         MediaItem mediaItem =
                 new MediaItem.Builder()
-                        .setMediaId(""+musicFile.getId())
+                        .setMediaId(musicFile.getId())
                         .setUri(musicFile.getUri())
                         .setMediaMetadata(
                                 new MediaMetadata.Builder()
@@ -289,7 +289,7 @@ public class MusicPlayerService extends MediaLibraryService {
         }
         MediaItem mediaItem =
                 new MediaItem.Builder()
-                        .setMediaId(""+musicFile.getId())
+                        .setMediaId(musicFile.getId())
                         .setUri(musicFile.getUri())
                         .setMediaMetadata(
                                 new MediaMetadata.Builder()
@@ -326,15 +326,15 @@ public class MusicPlayerService extends MediaLibraryService {
         return mediaItems;
     }
 
-    public void addSong(long song){
+    public void addSong(String song){
         MusicFile musicFile = MusicDatabase.SONGS.get(song);
         if(musicFile !=null){
             player.addMediaItem(buildMediaItem(musicFile));
         }
     }
 
-    public void addSongs(long[] songs) {
-        for(long song : songs) {
+    public void addSongs(String[] songs) {
+        for(String song : songs) {
             this.addSong(song);
         }
     }
@@ -363,7 +363,7 @@ public class MusicPlayerService extends MediaLibraryService {
     private void playFavoriteSongs(boolean shuffle){
         //Get Favorite Songs from Background Thread
         backgroundExecutor.execute(() -> {
-            final List<Long> allFavSongIds = appDatabaseRepository.getAllFavoriteSongIdsSortedSync();
+            final List<String> allFavSongIds = appDatabaseRepository.getAllFavoriteSongIdsSortedSync();
             if(allFavSongIds !=null) {
                 //Perform player actions on Main Thread
                 backgroundHandler.post(() -> {
@@ -378,7 +378,7 @@ public class MusicPlayerService extends MediaLibraryService {
     }
 
 
-    private void playSong(long songId, String albumId) {
+    private void playSong(String songId, String albumId) {
         LOGGER.info("Playing Song...");
         MusicAlbum album = MusicDatabase.getAlbumById(albumId);
         if(album !=null){
@@ -386,7 +386,7 @@ public class MusicPlayerService extends MediaLibraryService {
 
             final List<MusicFile> allSongs = album.getAllMusicFiles();
             final int songIndex = IntStream.range(0, allSongs.size())
-                    .filter(i -> allSongs.get(i).getId() == songId)
+                    .filter(i -> allSongs.get(i).getId().equals(songId))
                     .findFirst()
                     .orElse(-1);
             List<MediaItem> mediaItems = allSongs.stream().map(MusicPlayerService::buildMediaItem).toList();
@@ -408,13 +408,13 @@ public class MusicPlayerService extends MediaLibraryService {
         }
     }
 
-    private void playFavoriteSong(final long favSongId){
+    private void playFavoriteSong(final String favSongId){
         //Get Favorite Songs from Background Thread
         backgroundExecutor.execute(() -> {
-            final List<Long> allFavSongIds = appDatabaseRepository.getAllFavoriteSongIdsSortedSync();
+            final List<String> allFavSongIds = appDatabaseRepository.getAllFavoriteSongIdsSortedSync();
             if(allFavSongIds !=null) {
                 final int songIndex = IntStream.range(0, allFavSongIds.size())
-                        .filter(i -> allFavSongIds.get(i) == favSongId)
+                        .filter(i -> allFavSongIds.get(i).equals(favSongId))
                         .findFirst()
                         .orElse(-1);
                 //Perform player actions on Main Thread
@@ -533,7 +533,7 @@ public class MusicPlayerService extends MediaLibraryService {
             List<MediaItem> mediaItemList = new ArrayList<>();
             int indexInAlbum = startIndex;
 
-            long mediaId = Long.parseLong(mediaItem.mediaId);
+            String mediaId = mediaItem.mediaId;
             MusicFile musicFile = MusicDatabase.SONGS.get(mediaId);
             boolean addedAlbum = false;
             if (musicFile != null) {
@@ -544,7 +544,7 @@ public class MusicPlayerService extends MediaLibraryService {
                     List<MusicFile> albumMusicFiles = album.getAllMusicFiles();
                     for (int i = 0; i < albumMusicFiles.size(); i++) {
                         MusicFile albumMusicFile = albumMusicFiles.get(i);
-                        if (albumMusicFile.getId() == mediaId) {
+                        if (albumMusicFile.getId().equals(mediaId)) {
                             indexInAlbum = i;
                         }
                         mediaItemList.add(MusicPlayerService.buildMediaItem(albumMusicFile));
@@ -571,7 +571,7 @@ public class MusicPlayerService extends MediaLibraryService {
             List<MediaItem> fixedMediaItems = new ArrayList<>();
             for (MediaItem mediaItem : mediaItems) {
                 if (mediaItem.localConfiguration == null) {
-                    MusicFile musicFile = MusicDatabase.SONGS.get(Long.parseLong(mediaItem.mediaId));
+                    MusicFile musicFile = MusicDatabase.SONGS.get(mediaItem.mediaId);
                     if (musicFile != null) {
                         fixedMediaItems.add(MusicPlayerService.buildMediaItem(musicFile));
                     }

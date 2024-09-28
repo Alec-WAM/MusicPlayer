@@ -19,7 +19,7 @@ public interface FavoriteSongDao {
     void delete(FavoriteSong favoriteAlbum);
 
     @Query("DELETE FROM favorite_songs WHERE id = :id")
-    void deleteById(long id);
+    void deleteById(String id);
 
     @Query("SELECT * FROM favorite_songs")
     LiveData<List<FavoriteSong>> getAll();
@@ -28,15 +28,15 @@ public interface FavoriteSongDao {
     List<FavoriteSong> getAllSync();
 
     @Query("SELECT id FROM favorite_songs")
-    LiveData<List<Long>> getAllIds();
+    LiveData<List<String>> getAllIds();
 
     @Query("SELECT id FROM favorite_songs ORDER BY date_added DESC")
-    LiveData<List<Long>> getAllIdsSorted();
+    LiveData<List<String>> getAllIdsSorted();
 
     @Query("SELECT id FROM favorite_songs")
-    List<Long> getAllIdsSync();
+    List<String> getAllIdsSync();
 
     @Query("SELECT id FROM favorite_songs ORDER BY date_added DESC")
-    List<Long> getAllIdsSortedSync();
+    List<String> getAllIdsSortedSync();
 
 }

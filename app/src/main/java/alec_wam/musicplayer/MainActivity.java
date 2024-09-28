@@ -122,7 +122,15 @@ public class MainActivity extends AppCompatActivity {
         smallMusicPlayerControls = binding.mediaPlayerSmall;
         smallMusicPlayerControls.setPlayerView(this.playerView);
         smallMusicPlayerControls.setVisibility(View.GONE);
+    }
 
+    @Override
+    public void onStart(){
+        super.onStart();
+        setupMediaController();
+    }
+
+    public void setupMediaController(){
         SessionToken sessionToken = new SessionToken(this, new ComponentName(this, MusicPlayerService.class));
         mediaControllerFuture = new MediaController.Builder(this, sessionToken).buildAsync();
         mediaControllerFuture.addListener(() -> {

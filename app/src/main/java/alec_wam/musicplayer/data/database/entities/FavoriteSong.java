@@ -1,5 +1,6 @@
 package alec_wam.musicplayer.data.database.entities;
 
+import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
@@ -7,26 +8,27 @@ import androidx.room.PrimaryKey;
 @Entity(tableName = "favorite_songs")
 public class FavoriteSong {
     @PrimaryKey
-    private long id;
+    @NonNull
+    private String id;
 
     @ColumnInfo(name = "date_added")
     private long dateAdded;
 
-    public FavoriteSong(long id) {
+    public FavoriteSong(String id) {
         this.id = id;
         this.dateAdded = System.currentTimeMillis();
     }
 
-    public void setId(long value){
-        this.id = id;
+    public void setId(String value){
+        this.id = value;
     }
 
-    public long getId() {
+    public String getId() {
         return id;
     }
 
     public void setDateAdded(long value){
-        this.dateAdded = id;
+        this.dateAdded = value;
     }
 
     public long getDateAdded() {
