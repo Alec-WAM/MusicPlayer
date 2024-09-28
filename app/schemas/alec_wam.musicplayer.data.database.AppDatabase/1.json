@@ -2,15 +2,21 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "79288205c4a1ba22bab9b091db19a3a0",
+    "identityHash": "4561a391ca2d3d5abe3f6e3d2f6fbe95",
     "entities": [
       {
         "tableName": "favorite_songs",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `date_added` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dateAdded",
+            "columnName": "date_added",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -48,7 +54,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '79288205c4a1ba22bab9b091db19a3a0')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4561a391ca2d3d5abe3f6e3d2f6fbe95')"
     ]
   }
 }

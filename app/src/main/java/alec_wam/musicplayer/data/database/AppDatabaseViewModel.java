@@ -13,17 +13,21 @@ public class AppDatabaseViewModel extends AndroidViewModel {
     private AppDatabaseRepository mRepository;
 
     private final LiveData<List<Long>> mAllFavoriteSongs;
+    private final LiveData<List<Long>> mAllFavoriteSongsSorted;
     private final LiveData<List<String>> mAllFavoriteAlbums;
 
     public AppDatabaseViewModel(@NonNull Application application) {
         super(application);
 
         mRepository = new AppDatabaseRepository(application);
-        mAllFavoriteSongs = mRepository.getAllFavoriteSongs();
+        mAllFavoriteSongs = mRepository.getAllFavoriteSongIds();
+        mAllFavoriteSongsSorted = mRepository.getAllFavoriteSongIdsSorted();
         mAllFavoriteAlbums = mRepository.getAllFavoriteAlbums();
     }
 
     public LiveData<List<Long>> getAllFavoriteSongs() { return mAllFavoriteSongs; }
+
+    public LiveData<List<Long>> getAllFavoriteSongsSorted() { return mAllFavoriteSongsSorted; }
 
     public void insertFavoriteSong(long songId) { mRepository.insertFavoriteSong(songId); }
 

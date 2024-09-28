@@ -10,7 +10,6 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.Looper;
 
 import com.google.common.collect.ImmutableList;
@@ -26,7 +25,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -58,10 +56,7 @@ import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.session.LibraryResult;
 import androidx.media3.session.MediaLibraryService;
 import androidx.media3.session.MediaSession;
-import androidx.media3.session.SessionCommands;
 import androidx.media3.session.SessionError;
-
-import static androidx.media3.session.MediaSession.ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS;
 
 public class MusicPlayerService extends MediaLibraryService {
 
@@ -368,7 +363,7 @@ public class MusicPlayerService extends MediaLibraryService {
     private void playFavoriteSongs(boolean shuffle){
         //Get Favorite Songs from Background Thread
         backgroundExecutor.execute(() -> {
-            final List<Long> allFavSongIds = appDatabaseRepository.getAllFavoriteSongsSync();
+            final List<Long> allFavSongIds = appDatabaseRepository.getAllFavoriteSongIdsSortedSync();
             if(allFavSongIds !=null) {
                 //Perform player actions on Main Thread
                 backgroundHandler.post(() -> {
@@ -416,7 +411,7 @@ public class MusicPlayerService extends MediaLibraryService {
     private void playFavoriteSong(final long favSongId){
         //Get Favorite Songs from Background Thread
         backgroundExecutor.execute(() -> {
-            final List<Long> allFavSongIds = appDatabaseRepository.getAllFavoriteSongsSync();
+            final List<Long> allFavSongIds = appDatabaseRepository.getAllFavoriteSongIdsSortedSync();
             if(allFavSongIds !=null) {
                 final int songIndex = IntStream.range(0, allFavSongIds.size())
                         .filter(i -> allFavSongIds.get(i) == favSongId)

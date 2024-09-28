@@ -30,6 +30,7 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 import alec_wam.musicplayer.data.database.AppDatabaseViewModel;
+import alec_wam.musicplayer.data.database.entities.FavoriteSong;
 import alec_wam.musicplayer.database.MusicAlbum;
 import alec_wam.musicplayer.database.MusicDatabase;
 import alec_wam.musicplayer.database.MusicFile;
@@ -168,7 +169,7 @@ public class AlbumFragment extends Fragment {
             this.buildDefaultAlbum(disks, song_container, inflater);
         }
 
-        databaseViewModel.getAllFavoriteSongs().observe(getViewLifecycleOwner(), favoriteSongs -> {
+        databaseViewModel.getAllFavoriteSongsSorted().observe(getViewLifecycleOwner(), favoriteSongs -> {
             // Update UI with the favorite song items
             if(!isFavoriteSongs) {
                 this.songViews.forEach((songId, songView) -> {

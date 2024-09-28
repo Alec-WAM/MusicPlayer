@@ -22,12 +22,21 @@ public interface FavoriteSongDao {
     void deleteById(long id);
 
     @Query("SELECT * FROM favorite_songs")
-    List<FavoriteSong> getAll();
+    LiveData<List<FavoriteSong>> getAll();
+
+    @Query("SELECT * FROM favorite_songs")
+    List<FavoriteSong> getAllSync();
 
     @Query("SELECT id FROM favorite_songs")
     LiveData<List<Long>> getAllIds();
 
+    @Query("SELECT id FROM favorite_songs ORDER BY date_added DESC")
+    LiveData<List<Long>> getAllIdsSorted();
+
     @Query("SELECT id FROM favorite_songs")
     List<Long> getAllIdsSync();
+
+    @Query("SELECT id FROM favorite_songs ORDER BY date_added DESC")
+    List<Long> getAllIdsSortedSync();
 
 }

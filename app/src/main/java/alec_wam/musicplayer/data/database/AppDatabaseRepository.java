@@ -13,7 +13,8 @@ import androidx.lifecycle.LiveData;
 public class AppDatabaseRepository {
 
     private FavoriteSongDao mFavoriteSongDao;
-    private LiveData<List<Long>> mAllFavoriteSongs;
+    private LiveData<List<Long>> mAllFavoriteSongIds;
+    private LiveData<List<Long>> mAllFavoriteSongIdsSorted;
 
     private FavoriteAlbumDao mFavoriteAlbumDao;
     private LiveData<List<String>> mAllFavoriteAlbums;
@@ -22,23 +23,28 @@ public class AppDatabaseRepository {
     public AppDatabaseRepository(Application application){
         AppDatabase db = AppDatabase.getDatabase(application);
         mFavoriteSongDao = db.favoriteSongDao();
-        mAllFavoriteSongs = mFavoriteSongDao.getAllIds();
+        mAllFavoriteSongIds = mFavoriteSongDao.getAllIds();
+        mAllFavoriteSongIdsSorted = mFavoriteSongDao.getAllIdsSorted();
         mFavoriteAlbumDao = db.favoriteAlbumDao();
         mAllFavoriteAlbums = mFavoriteAlbumDao.getAllIds();
     }
 
-    public LiveData<List<Long>> getAllFavoriteSongs(){
-        return mAllFavoriteSongs;
+    public LiveData<List<Long>> getAllFavoriteSongIds(){
+        return mAllFavoriteSongIds;
     }
-
-    public List<Long> getAllFavoriteSongsSync(){
+    public LiveData<List<Long>> getAllFavoriteSongIdsSorted(){
+        return mAllFavoriteSongIdsSorted;
+    }
+    public List<Long> getAllFavoriteSongIdsSync(){
         return mFavoriteSongDao.getAllIdsSync();
+    }
+    public List<Long> getAllFavoriteSongIdsSortedSync(){
+        return mFavoriteSongDao.getAllIdsSortedSync();
     }
 
     public void insertFavoriteSong(long songId) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
-            FavoriteSong favoriteSong = new FavoriteSong();
-            favoriteSong.id = songId;
+            FavoriteSong favoriteSong = new FavoriteSong(songId);
             mFavoriteSongDao.insert(favoriteSong);
         });
     }
