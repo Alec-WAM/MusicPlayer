@@ -113,6 +113,10 @@ public class AppDatabaseRepository {
         return mPlaylistSongDao.getSongsInPlaylist(playlistId);
     }
 
+    public List<PlaylistSong> getPlaylistSongsSync(int playlistId){
+        return mPlaylistSongDao.getSongsInPlaylistSync(playlistId);
+    }
+
     public void addSongToPlaylist(int playlistId, String songId) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
             // Get the current playlist size

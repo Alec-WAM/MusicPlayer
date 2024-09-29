@@ -32,6 +32,9 @@ public interface PlaylistSongDao {
     @Query("SELECT * FROM playlist_song WHERE playlistId = :playlistId ORDER BY position")
     LiveData<List<PlaylistSong>> getSongsInPlaylist(int playlistId);
 
+    @Query("SELECT * FROM playlist_song WHERE playlistId = :playlistId ORDER BY position")
+    List<PlaylistSong> getSongsInPlaylistSync(int playlistId);
+
     @Query("SELECT COUNT(*) FROM playlist_song WHERE playlistId = :playlistId")
     int getPlaylistSize(int playlistId);
 

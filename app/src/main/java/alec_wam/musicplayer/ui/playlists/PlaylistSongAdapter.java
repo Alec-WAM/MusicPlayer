@@ -30,12 +30,20 @@ public class PlaylistSongAdapter extends RecyclerView.Adapter<PlaylistSongAdapte
     private List<PlaylistSong> playlistSongs;
     private ItemTouchHelper itemTouchHelper;
     private OnItemMovedListener onItemMovedListener;
+    private OnPlaylistSongClickListener onItemClickedListener;
+
+    private int playingPlaylistSongId = -1;
 
     public interface OnItemMovedListener {
         void onItemMoved(int fromPosition, int toPosition);
     }
 
+    public interface OnPlaylistSongClickListener {
+        void onClicked(int playlistSongId);
+    }
+
     public class ViewHolder extends RecyclerView.ViewHolder {
+        public View parentView;
         public ImageView songDragHandle;
         public ImageView songAlbumCover;
         public TextView songTitle;
@@ -43,6 +51,7 @@ public class PlaylistSongAdapter extends RecyclerView.Adapter<PlaylistSongAdapte
 
         public ViewHolder(View itemView) {
             super(itemView);
+            parentView = itemView;
             songDragHandle = itemView.findViewById(R.id.item_song_drag_handle);
             songAlbumCover = itemView.findViewById(R.id.item_song_album_image);
             songTitle = itemView.findViewById(R.id.item_song_title_text);
@@ -50,14 +59,19 @@ public class PlaylistSongAdapter extends RecyclerView.Adapter<PlaylistSongAdapte
         }
     }
 
-    public PlaylistSongAdapter(Context context, List<PlaylistSong> playlistSongs, OnItemMovedListener listener) {
+    public PlaylistSongAdapter(Context context, List<PlaylistSong> playlistSongs, OnItemMovedListener listener, OnPlaylistSongClickListener onItemClickedListener) {
         this.context = context;
         this.playlistSongs = playlistSongs;
         this.onItemMovedListener = listener;
+        this.onItemClickedListener = onItemClickedListener;
     }
 
     public void setItemTouchHelper(ItemTouchHelper itemTouchHelper) {
         this.itemTouchHelper = itemTouchHelper;
+    }
+
+    public void setPlayingPlaylistSongId(int playingPlaylistSongId) {
+        this.playingPlaylistSongId = playingPlaylistSongId;
     }
 
     @Override
@@ -74,7 +88,7 @@ public class PlaylistSongAdapter extends RecyclerView.Adapter<PlaylistSongAdapte
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        PlaylistSong playlistSong = playlistSongs.get(position);
+        final PlaylistSong playlistSong = playlistSongs.get(position);
 
         MusicFile musicFile = MusicDatabase.SONGS.get(playlistSong.songId);
         Uri albumImageUri = null;
@@ -104,6 +118,23 @@ public class PlaylistSongAdapter extends RecyclerView.Adapter<PlaylistSongAdapte
 
         holder.songTitle.setText(title);
         holder.songArtist.setText(artist);
+
+        if(this.onItemClickedListener !=null){
+            holder.parentView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    PlaylistSongAdapter.this.onItemClickedListener.onClicked(playlistSong.id);
+                }
+            });
+        }
+
+        if(playlistSong.id == this.playingPlaylistSongId){
+            int themeColor = ThemedDrawableUtils.getThemeColor(context, com.google.android.material.R.attr.colorSecondaryContainer, R.color.colorCustomColor);
+            holder.parentView.setBackgroundColor(themeColor);
+        }
+        else {
+            holder.parentView.setBackground(null);
+        }
     }
 
     @Override

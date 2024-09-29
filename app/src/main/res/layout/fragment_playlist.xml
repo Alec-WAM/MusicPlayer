@@ -71,7 +71,7 @@
             android:paddingVertical="2dp">
 
             <Button
-                android:id="@+id/playlist_info_button_play_album"
+                android:id="@+id/playlist_info_button_play"
                 style="@style/Widget.Material3.Button.Icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -81,7 +81,7 @@
                 app:icon="@drawable/ic_play" />
 
             <Button
-                android:id="@+id/playlist_info_button_shuffle_album"
+                android:id="@+id/playlist_info_button_shuffle"
                 style="@style/Widget.Material3.Button.TonalButton.Icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

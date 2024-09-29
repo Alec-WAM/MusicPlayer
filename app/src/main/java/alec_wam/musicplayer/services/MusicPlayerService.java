@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -33,6 +34,7 @@ import java.util.stream.IntStream;
 
 import alec_wam.musicplayer.R;
 import alec_wam.musicplayer.data.database.AppDatabaseRepository;
+import alec_wam.musicplayer.data.database.entities.PlaylistSong;
 import alec_wam.musicplayer.database.MusicAlbum;
 import alec_wam.musicplayer.database.MusicArtist;
 import alec_wam.musicplayer.database.MusicDatabase;
@@ -58,6 +60,8 @@ import androidx.media3.session.MediaLibraryService;
 import androidx.media3.session.MediaSession;
 import androidx.media3.session.SessionError;
 
+import static alec_wam.musicplayer.utils.MusicPlayerUtils.BUNDLE_SONG_CHANGE_SONG_PLAYLIST_SONG_ID;
+
 public class MusicPlayerService extends MediaLibraryService {
 
     private final static Logger LOGGER = Logger.getLogger("MusicPlayerService");
@@ -72,9 +76,15 @@ public class MusicPlayerService extends MediaLibraryService {
     public static final String BUNDLE_PLAY_ALBUM_ALBUM = "album";
     public static final String BUNDLE_PLAY_ALBUM_SHUFFLE = "shuffle";
     public static final String INTENT_PLAY_FAVORITES = "MP_PLAY_FAVORITES";
+    public static final String INTENT_PLAY_PLAYLIST = "MP_PLAY_PLAYLIST";
+    public static final String BUNDLE_PLAY_PLAYLIST_PLAYLIST = "playlist";
+    public static final String BUNDLE_PLAY_PLAYLIST_PLAYLIST_SONG = "playlist_song";
+    public static final String BUNDLE_PLAY_PLAYLIST_SHUFFLE = "shuffle";
     public static final String INTENT_UPDATE_QUEUE = "MP_UPDATE_QUEUE";
     public static final String BUNDLE_UPDATE_QUEUE_SONGS = "songs";
     public static final String INTENT_CLEAR_QUEUE = "MP_CLEAR_QUEUE";
+
+    public static final String BUNDLE_PLAYLIST_SONG = "playlist_song";
 
     public static final String NOTIFICATION_CHANNEL_ID = "music_player_service";
     public static final int NOTIFICATION_ID = 1;
@@ -180,10 +190,17 @@ public class MusicPlayerService extends MediaLibraryService {
             ){
                 MusicPlayerService.this.currentSong = mediaItem;
                 String mediaId = null;
+                int playlistSongId = -1;
                 if(mediaItem !=null) {
                     mediaId = mediaItem.mediaId;
+                    MediaMetadata mediaMetadata = mediaItem.mediaMetadata;
+                    if(mediaMetadata.extras !=null){
+                        if(mediaMetadata.extras.containsKey(BUNDLE_PLAYLIST_SONG)){
+                            playlistSongId = mediaMetadata.extras.getInt(BUNDLE_PLAYLIST_SONG, -1);
+                        }
+                    }
                 }
-                MusicPlayerUtils.broadcastSongChange(MusicPlayerService.this, mediaId);
+                MusicPlayerUtils.broadcastSongChange(MusicPlayerService.this, mediaId, Optional.of(playlistSongId));
             }
         });
 
@@ -191,6 +208,7 @@ public class MusicPlayerService extends MediaLibraryService {
         filter.addAction(INTENT_PLAY_SONG);
         filter.addAction(INTENT_PAUSE_SONG);
         filter.addAction(INTENT_PLAY_ALBUM);
+        filter.addAction(INTENT_PLAY_PLAYLIST);
         filter.addAction(INTENT_PLAY_FAVORITES);
         filter.addAction(INTENT_UPDATE_QUEUE);
         filter.addAction(INTENT_CLEAR_QUEUE);
@@ -240,6 +258,20 @@ public class MusicPlayerService extends MediaLibraryService {
                     boolean shuffle = intent.getBooleanExtra(BUNDLE_PLAY_ALBUM_SHUFFLE, false);
                     MusicPlayerService.this.playFavoriteSongs(shuffle);
                 }
+                if(INTENT_PLAY_PLAYLIST.equalsIgnoreCase(intent.getAction())){
+                    int playlistId = intent.getIntExtra(BUNDLE_PLAY_PLAYLIST_PLAYLIST, -1);
+                    int playlistSongId = intent.getIntExtra(BUNDLE_PLAY_PLAYLIST_PLAYLIST_SONG, -1);
+                    boolean shuffleMode = intent.getBooleanExtra(BUNDLE_PLAY_PLAYLIST_SHUFFLE, false);
+
+                    if(playlistId >= 0){
+                        if(playlistSongId >= 0){
+                            MusicPlayerService.this.playPlaylistSong(playlistId, playlistSongId);
+                        }
+                        else {
+                            MusicPlayerService.this.playPlaylist(playlistId, shuffleMode);
+                        }
+                    }
+                }
                 if(INTENT_UPDATE_QUEUE.equalsIgnoreCase(intent.getAction())) {
 //                    LOGGER.info("BroadcastReceiver: Update Queue Message Received");
                     String[] songs = intent.getStringArrayExtra(BUNDLE_UPDATE_QUEUE_SONGS);
@@ -274,6 +306,27 @@ public class MusicPlayerService extends MediaLibraryService {
                                         .setArtworkUri(musicFile.getAlbumArtUri())
                                         .setTitle(musicFile.getName())
                                         .setArtist(musicFile.getArtist())
+                                        .build())
+                        .build();
+        return mediaItem;
+    }
+
+    public static MediaItem buildPlaylistMediaItem(MusicFile musicFile, int playlistSongId){
+        if(musicFile == null){
+            return null;
+        }
+        Bundle extras = new Bundle();
+        extras.putInt(BUNDLE_PLAYLIST_SONG, playlistSongId);
+        MediaItem mediaItem =
+                new MediaItem.Builder()
+                        .setMediaId(musicFile.getId())
+                        .setUri(musicFile.getUri())
+                        .setMediaMetadata(
+                                new MediaMetadata.Builder()
+                                        .setArtworkUri(musicFile.getAlbumArtUri())
+                                        .setTitle(musicFile.getName())
+                                        .setArtist(musicFile.getArtist())
+                                        .setExtras(extras)
                                         .build())
                         .build();
         return mediaItem;
@@ -377,6 +430,51 @@ public class MusicPlayerService extends MediaLibraryService {
         });
     }
 
+    private void playPlaylist(int playlistId, boolean shuffle){
+        //Get Favorite Songs from Background Thread
+        backgroundExecutor.execute(() -> {
+            final List<PlaylistSong> playlistSongs = appDatabaseRepository.getPlaylistSongsSync(playlistId);
+            if(playlistSongs !=null) {
+                //Perform player actions on Main Thread
+                backgroundHandler.post(() -> {
+                    List<MediaItem> mediaItems = playlistSongs.stream().map((playlistSong) -> {
+                        MusicFile musicFile = MusicDatabase.SONGS.get(playlistSong.songId);
+                        return buildPlaylistMediaItem(musicFile, playlistSong.id);
+                    }).toList();
+                    player.setMediaItems(mediaItems);
+                    player.setShuffleModeEnabled(shuffle);
+                    player.prepare();
+                    player.play();
+                });
+            }
+        });
+    }
+
+    private void playPlaylistSong(int playlistId, int playlistSongId){
+        //Get Favorite Songs from Background Thread
+        backgroundExecutor.execute(() -> {
+            final List<PlaylistSong> playlistSongs = appDatabaseRepository.getPlaylistSongsSync(playlistId);
+            if(playlistSongs !=null) {
+                final int songIndex = IntStream.range(0, playlistSongs.size())
+                        .filter(i -> playlistSongs.get(i).id == playlistSongId)
+                        .findFirst()
+                        .orElse(-1);
+                //Perform player actions on Main Thread
+                backgroundHandler.post(() -> {
+                    List<MediaItem> mediaItems = playlistSongs.stream().map((playlistSong) -> {
+                        MusicFile musicFile = MusicDatabase.SONGS.get(playlistSong.songId);
+                        return buildPlaylistMediaItem(musicFile, playlistSong.id);
+                    }).toList();
+                    player.setMediaItems(mediaItems);
+                    if(songIndex > -1) {
+                        player.seekTo(songIndex, 0);
+                    }
+                    player.prepare();
+                    player.play();
+                });
+            }
+        });
+    }
 
     private void playSong(String songId, String albumId) {
         LOGGER.info("Playing Song...");

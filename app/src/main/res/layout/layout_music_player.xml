@@ -63,8 +63,8 @@
 
             <ImageView
                 android:id="@+id/music_player_album_image"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_width="350dp"
+                android:layout_height="350dp"
                 android:layout_gravity="center_horizontal"
                 android:adjustViewBounds="true"
                 android:scaleType="fitCenter"

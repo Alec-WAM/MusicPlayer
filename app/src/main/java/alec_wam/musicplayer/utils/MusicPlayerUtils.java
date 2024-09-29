@@ -17,6 +17,7 @@ public class MusicPlayerUtils {
 
     public static final String INTENT_SONG_CHANGE = "MP_SONG_CHANGE";
     public static final String BUNDLE_SONG_CHANGE_SONG = "song";
+    public static final String BUNDLE_SONG_CHANGE_SONG_PLAYLIST_SONG_ID = "playlist_song";
     public static final String BUNDLE_SONG_CHANGE_ALBUM = "album";
 
     public static void playSong(Context context, String songId, Optional<String> albumId, boolean playFromFavorites){
@@ -43,9 +44,18 @@ public class MusicPlayerUtils {
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 
-    public static void broadcastSongChange(Context context, String songId){
+    public static void playPlaylist(Context context, int playlistId, Optional<Integer> playlistSongId, Optional<Boolean> shuffle){
+        Intent intent = new Intent(MusicPlayerService.INTENT_PLAY_PLAYLIST);
+        intent.putExtra(MusicPlayerService.BUNDLE_PLAY_PLAYLIST_PLAYLIST, playlistId);
+        intent.putExtra(MusicPlayerService.BUNDLE_PLAY_PLAYLIST_PLAYLIST_SONG, playlistSongId.orElse(-1));
+        intent.putExtra(MusicPlayerService.BUNDLE_PLAY_PLAYLIST_SHUFFLE, shuffle.orElse(false));
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+    }
+
+    public static void broadcastSongChange(Context context, String songId, Optional<Integer> playlistSongId){
         Intent intent = new Intent(INTENT_SONG_CHANGE);
         intent.putExtra(BUNDLE_SONG_CHANGE_SONG, songId);
+        intent.putExtra(BUNDLE_SONG_CHANGE_SONG_PLAYLIST_SONG_ID, playlistSongId.orElse(-1));
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 }
