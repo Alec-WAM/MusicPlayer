@@ -7,6 +7,7 @@ import alec_wam.musicplayer.MainActivity;
 import alec_wam.musicplayer.R;
 import alec_wam.musicplayer.ui.album.AlbumFragment;
 import alec_wam.musicplayer.ui.artist.ArtistFragment;
+import alec_wam.musicplayer.ui.playlists.PlaylistFragment;
 import androidx.annotation.IdRes;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -30,6 +31,12 @@ public class FragmentUtils {
     public static void openArtistPage(final View view, final String artistId, final @IdRes int navId) {
         Bundle args = new Bundle();
         args.putString(ArtistFragment.ARG_ARTIST, artistId);
+        MainActivity.navController.navigate(navId, args);
+    }
+
+    public static void openPlaylist(final int playlistId, final @IdRes int navId) {
+        Bundle args = new Bundle();
+        args.putInt(PlaylistFragment.ARG_PLAYLIST, playlistId);
         MainActivity.navController.navigate(navId, args);
     }
 }

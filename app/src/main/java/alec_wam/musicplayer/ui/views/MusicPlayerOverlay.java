@@ -19,9 +19,15 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.button.MaterialButton;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import alec_wam.musicplayer.R;
+import alec_wam.musicplayer.database.MusicDatabase;
+import alec_wam.musicplayer.database.MusicFile;
+import alec_wam.musicplayer.utils.FragmentUtils;
+import alec_wam.musicplayer.utils.MusicPlayerUtils;
 import alec_wam.musicplayer.utils.ThemedDrawableUtils;
 import alec_wam.musicplayer.utils.Utils;
 import androidx.annotation.Nullable;
@@ -97,11 +103,7 @@ public class MusicPlayerOverlay extends ConstraintLayout implements Player.Liste
         menuButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                ModalMusicPlayerSongBottomSheet modal = new ModalMusicPlayerSongBottomSheet(R.layout.layout_music_player_song_menu, MusicPlayerOverlay.this, mediaId);
-                if(getContext() instanceof FragmentActivity){
-                    FragmentManager fragmentManager = ((FragmentActivity) getContext()).getSupportFragmentManager();
-                    modal.show(fragmentManager, ModalMusicPlayerSongBottomSheet.TAG);
-                }
+                buildModalMenu();
             }
         });
 
@@ -239,6 +241,45 @@ public class MusicPlayerOverlay extends ConstraintLayout implements Player.Liste
         updateSeekBarProgress();
         updatePrevNextButtons();
         updateRepeatAndShuffleButtons(controller.getRepeatMode(), controller.getShuffleModeEnabled());
+    }
+
+    public void buildModalMenu(){
+        final MusicFile musicFile = MusicDatabase.SONGS.get(mediaId);
+        if(musicFile !=null) {
+            String title = musicFile.getName();
+            String subText = musicFile.getArtist();
+            ModalMenuBottomSheet.ImageLoader imageLoader = new ModalMenuBottomSheet.ImageLoader() {
+                @Override
+                public void loadImage(ImageView imageView) {
+                    Drawable themed_unknown_album = ThemedDrawableUtils.getThemedIcon(getContext(), R.drawable.ic_unkown_album, com.google.android.material.R.attr.colorSecondary, Color.BLACK);
+                    Glide.with(MusicPlayerOverlay.this)
+                            .load(musicFile.getAlbumArtUri())  // URI for album art
+                            .placeholder(themed_unknown_album)  // Optional placeholder
+                            .error(themed_unknown_album)  // Optional error image
+                            .into(imageView);
+                }
+            };
+            List<ModalMenuBottomSheet.MenuOption> menuOptionList = new ArrayList<>();
+            menuOptionList.add(new ModalMenuBottomSheet.MenuOption(R.drawable.ic_unkown_album, "View Album", new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    FragmentUtils.openAlbumPage(view, musicFile.getAlbumId(), R.id.navigation_album);
+                    MusicPlayerOverlay.this.hideOverlay();
+                }
+            }));
+            menuOptionList.add(new ModalMenuBottomSheet.MenuOption(R.drawable.ic_unknown_artist, "View Artist", new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    FragmentUtils.openArtistPage(view, musicFile.getArtistId(), R.id.navigation_artist);
+                    MusicPlayerOverlay.this.hideOverlay();
+                }
+            }));
+            ModalMenuBottomSheet modal = new ModalMenuBottomSheet(R.layout.layout_bottom_sheet_menu, imageLoader, title, subText, menuOptionList);
+            if (getContext() instanceof FragmentActivity) {
+                FragmentManager fragmentManager = ((FragmentActivity) getContext()).getSupportFragmentManager();
+                modal.show(fragmentManager, ModalMenuBottomSheet.TAG);
+            }
+        }
     }
 
     public void showOverlay(){

@@ -4,6 +4,8 @@ import android.app.Application;
 
 import java.util.List;
 
+import alec_wam.musicplayer.data.database.entities.Playlist;
+import alec_wam.musicplayer.data.database.entities.PlaylistSong;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -16,6 +18,8 @@ public class AppDatabaseViewModel extends AndroidViewModel {
     private final LiveData<List<String>> mAllFavoriteSongsSorted;
     private final LiveData<List<String>> mAllFavoriteAlbums;
 
+    private final LiveData<List<Playlist>> mAllPlaylists;
+
     public AppDatabaseViewModel(@NonNull Application application) {
         super(application);
 
@@ -23,8 +27,10 @@ public class AppDatabaseViewModel extends AndroidViewModel {
         mAllFavoriteSongs = mRepository.getAllFavoriteSongIds();
         mAllFavoriteSongsSorted = mRepository.getAllFavoriteSongIdsSorted();
         mAllFavoriteAlbums = mRepository.getAllFavoriteAlbums();
+        mAllPlaylists = mRepository.getAllPlaylists();
     }
 
+    //FAV SONG
     public LiveData<List<String>> getAllFavoriteSongs() { return mAllFavoriteSongs; }
 
     public LiveData<List<String>> getAllFavoriteSongsSorted() { return mAllFavoriteSongsSorted; }
@@ -33,9 +39,27 @@ public class AppDatabaseViewModel extends AndroidViewModel {
 
     public void deleteFavoriteSong(String songId) { mRepository.deleteFavoriteSong(songId); }
 
+    //FAV ALBUM
     public LiveData<List<String>> getAllFavoriteAlbums() { return mAllFavoriteAlbums; }
 
     public void insertFavoriteAlbum(String albumId) { mRepository.insertFavoriteAlbum(albumId); }
 
     public void deleteFavoriteAlbum(String albumId) { mRepository.deleteFavoriteAlbum(albumId); }
+
+    //PLAYLISTS
+    public LiveData<List<Playlist>> getAllPlaylists() { return mAllPlaylists; }
+
+    public LiveData<Playlist> getPlaylist(int playlistId) { return mRepository.getPlaylistById(playlistId); }
+
+    public void insertPlaylist(String name) { mRepository.insertPlaylist(name); }
+
+    public void deletePlaylist(int id) { mRepository.deletePlaylist(id); }
+
+    public LiveData<List<PlaylistSong>> getPlaylistSongs(int playlistId) { return mRepository.getPlaylistSongs(playlistId); }
+
+    public void insertPlaylistSong(int playlistId, String songId) { mRepository.addSongToPlaylist(playlistId, songId); }
+
+    public void deletePlaylistSong(int playlistSongId) { mRepository.deletePlaylistSong(playlistSongId); }
+
+    public void updatePlaylistSongPosition(int playlistSongId, int position) { mRepository.updatePlaylistSongPosition(playlistSongId, position); }
 }

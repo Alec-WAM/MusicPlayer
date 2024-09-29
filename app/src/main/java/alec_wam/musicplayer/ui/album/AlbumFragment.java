@@ -1,7 +1,9 @@
 package alec_wam.musicplayer.ui.album;
 
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
@@ -31,18 +33,24 @@ import java.util.logging.Logger;
 
 import alec_wam.musicplayer.data.database.AppDatabaseViewModel;
 import alec_wam.musicplayer.data.database.entities.FavoriteSong;
+import alec_wam.musicplayer.data.database.entities.Playlist;
 import alec_wam.musicplayer.database.MusicAlbum;
 import alec_wam.musicplayer.database.MusicDatabase;
 import alec_wam.musicplayer.database.MusicFile;
 import alec_wam.musicplayer.R;
 import alec_wam.musicplayer.databinding.FragmentAlbumBinding;
 import alec_wam.musicplayer.services.MusicPlayerService;
+import alec_wam.musicplayer.ui.views.ModalMenuBottomSheet;
+import alec_wam.musicplayer.ui.views.MusicPlayerOverlay;
+import alec_wam.musicplayer.utils.FragmentUtils;
 import alec_wam.musicplayer.utils.MusicPlayerUtils;
 import alec_wam.musicplayer.utils.ThemedDrawableUtils;
 import alec_wam.musicplayer.utils.Utils;
 import androidx.fragment.app.Fragment;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -58,6 +66,7 @@ public class AlbumFragment extends Fragment {
     private FragmentAlbumBinding binding;
 
     private AppDatabaseViewModel databaseViewModel;
+    private List<Playlist> playlists;
 
     private String albumId;
     private boolean isFavoriteSongs;
@@ -197,12 +206,13 @@ public class AlbumFragment extends Fragment {
                         return;
                     }
                     LOGGER.info("Check changed Album: " + albumId);
-                    if(checked){
-                        AlbumFragment.this.databaseViewModel.insertFavoriteAlbum(albumId);
-                    }
-                    else {
-                        AlbumFragment.this.databaseViewModel.deleteFavoriteAlbum(albumId);
-                    }
+                    //TODO Fix this being called when Fragment is reloaded
+//                    if(checked){
+//                        AlbumFragment.this.databaseViewModel.insertFavoriteAlbum(albumId);
+//                    }
+//                    else {
+//                        AlbumFragment.this.databaseViewModel.deleteFavoriteAlbum(albumId);
+//                    }
                 }
             });
 
@@ -216,6 +226,17 @@ public class AlbumFragment extends Fragment {
                 }
             });
         }
+
+        databaseViewModel.getAllPlaylists().observe(getViewLifecycleOwner(), playlists -> {
+            List<Playlist> playlistSorted = new ArrayList<>(playlists); // Retrieve playlists from your database
+            playlistSorted.sort(new Comparator<Playlist>() {
+                @Override
+                public int compare(Playlist pl1, Playlist pl2) {
+                    return pl1.name.compareTo(pl2.name);
+                }
+            });
+            this.playlists = playlistSorted;
+        });
 
         return root;
     }
@@ -274,7 +295,13 @@ public class AlbumFragment extends Fragment {
                         }
                     });
 
-                    // TODO Add action to button
+                    Button menuButton = songView.findViewById(R.id.item_song_menu_button);
+                    menuButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            buildSongModalMenu(track);
+                        }
+                    });
 
                     songView.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -313,11 +340,14 @@ public class AlbumFragment extends Fragment {
             String trackAlbumId = track.getAlbumId();
             MusicAlbum musicAlbum = MusicDatabase.getAlbumById(trackAlbumId);
             Uri albumArtUri = musicAlbum !=null ? musicAlbum.getAlbumArtUri() : null;
-            if(albumArtUri !=null){
-                ImageView albumImage = (ImageView) songView.findViewById(R.id.item_song_album_image);
-                albumImage.setImageURI(albumArtUri);
-                albumImage.setVisibility(View.VISIBLE);
-            }
+            ImageView albumImage = (ImageView) songView.findViewById(R.id.item_song_album_image);
+            albumImage.setVisibility(View.VISIBLE);
+            Drawable themed_unknown_album = ThemedDrawableUtils.getThemedIcon(this.getContext(), R.drawable.ic_unkown_album, com.google.android.material.R.attr.colorPrimary, Color.BLACK);
+            Glide.with(getContext())
+                    .load(albumArtUri)  // URI for album art
+                    .placeholder(themed_unknown_album)  // Optional placeholder
+                    .error(themed_unknown_album)  // Optional error image
+                    .into(albumImage);
 
             TextView trackTitleView = (TextView) songView.findViewById(R.id.item_song_title_text);
             trackTitleView.setText(track.getName());
@@ -349,7 +379,13 @@ public class AlbumFragment extends Fragment {
             favoriteCheckBox.setChecked(true);
             favoriteCheckBox.setTag(null);
 
-            // TODO Add action to button
+            Button menuButton = songView.findViewById(R.id.item_song_menu_button);
+            menuButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    buildSongModalMenu(track);
+                }
+            });
 
             songView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -366,6 +402,96 @@ public class AlbumFragment extends Fragment {
             song_container.addView(songView);
             this.songViews.put(track.getId(), songView);
         }
+    }
+
+    public void buildSongModalMenu(final MusicFile musicFile){
+        if(musicFile !=null) {
+            String title = musicFile.getName();
+            String subText = musicFile.getArtist();
+            ModalMenuBottomSheet.ImageLoader imageLoader = new ModalMenuBottomSheet.ImageLoader() {
+                @Override
+                public void loadImage(ImageView imageView) {
+                    Drawable themed_unknown_album = ThemedDrawableUtils.getThemedIcon(getContext(), R.drawable.ic_unkown_album, com.google.android.material.R.attr.colorSecondary, Color.BLACK);
+                    Glide.with(AlbumFragment.this.getContext())
+                            .load(musicFile.getAlbumArtUri())  // URI for album art
+                            .placeholder(themed_unknown_album)  // Optional placeholder
+                            .error(themed_unknown_album)  // Optional error image
+                            .into(imageView);
+                }
+            };
+            List<ModalMenuBottomSheet.MenuOption> menuOptionList = new ArrayList<>();
+            menuOptionList.add(new ModalMenuBottomSheet.MenuOption(R.drawable.ic_playlist_add, "Add to Playlist", new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    showAddToPlaylistDialog(musicFile.getId());
+                }
+            }));
+            ModalMenuBottomSheet modal = new ModalMenuBottomSheet(R.layout.layout_bottom_sheet_menu, imageLoader, title, subText, menuOptionList);
+            if (getContext() instanceof FragmentActivity) {
+                FragmentManager fragmentManager = ((FragmentActivity) getContext()).getSupportFragmentManager();
+                modal.show(fragmentManager, ModalMenuBottomSheet.TAG);
+            }
+        }
+    }
+
+    private void showAddToPlaylistDialog(final String sondId){
+        // Inflate the dialog layout
+        LayoutInflater inflater = LayoutInflater.from(getContext());
+        View dialogView = inflater.inflate(R.layout.layout_dialog_add_to_playlist, null);
+
+        // Create the dialog builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setView(dialogView);
+
+        // Set up the RecyclerView (assuming you have an adapter)
+        final List<Integer> selectedPlaylists = new ArrayList<>();
+        final LinearLayout scrollContainer = dialogView.findViewById(R.id.dialog_add_to_playlist_scroll_container);
+        for(final Playlist playlist : this.playlists){
+            View playlistSelectionView = inflater.inflate(R.layout.list_item_playlist_selection, null);
+            TextView playlistTextView = playlistSelectionView.findViewById(R.id.item_playlist_selection_text);
+            playlistTextView.setText(playlist.name);
+            CheckBox playlistCheckbox = playlistSelectionView.findViewById(R.id.item_playlist_selection_checkbox);
+            playlistCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
+                    if(checked){
+                        selectedPlaylists.add(playlist.id);
+                    }
+                    else {
+                        selectedPlaylists.remove(playlist.id);
+                    }
+                }
+            });
+            scrollContainer.addView(playlistSelectionView);
+        }
+
+        // Handle clicking the "Create New Playlist" button
+//        createPlaylistButton.setOnClickListener(v -> {
+//            // Show a dialog to create a new playlist
+//            showCreatePlaylistDialog();
+//            dialog.dismiss();
+//        });
+
+        builder.setPositiveButton("Add", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                for(int playlistId : selectedPlaylists){
+                    databaseViewModel.insertPlaylistSong(playlistId, sondId);
+                }
+            }
+        });
+
+        // Set negative button to cancel
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        // Create and show the dialog
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {

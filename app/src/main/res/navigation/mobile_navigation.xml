@@ -55,5 +55,15 @@
         android:id="@+id/navigation_playlists"
         android:name="alec_wam.musicplayer.ui.playlists.PlaylistsFragment"
         android:label="@string/menu_playlists"
-        tools:layout="@layout/fragment_playlists" />
+        tools:layout="@layout/fragment_playlists" >
+        <action
+            android:id="@+id/action_navigation_playlists_to_navigation_playlist"
+            app:destination="@id/navigation_playlist" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_playlist"
+        android:name="alec_wam.musicplayer.ui.playlists.PlaylistFragment"
+        android:label="@string/menu_playlist"
+        tools:layout="@layout/fragment_playlist" />
 </navigation>

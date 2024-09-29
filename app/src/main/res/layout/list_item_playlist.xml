@@ -2,37 +2,15 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/list_item_song_container"
+    android:id="@+id/list_item_playlist_container"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="110dp"
     android:padding="5dp">
 
     <ImageView
-        android:id="@+id/item_song_drag_handle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:contentDescription="Drag to reorder"
-        android:src="@drawable/ic_drag_handle"
-        android:tint="?attr/colorOnSurface"
-        android:visibility="gone"
-        tools:visibility="visible" />
-
-    <TextView
-        android:id="@+id/item_song_track"
-        android:layout_width="38dp"
-        android:layout_height="38dp"
-        android:layout_gravity="center_vertical"
-        android:layout_weight="0"
-        android:padding="5dp"
-        android:textAlignment="center"
-        android:textSize="18sp"
-        tools:text="1" />
-
-    <ImageView
-        android:id="@+id/item_song_album_image"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:id="@+id/item_playlist_album_image"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
         android:layout_gravity="center"
         android:layout_weight="0"
         android:adjustViewBounds="true"
@@ -43,7 +21,7 @@
         tools:visibility="visible" />
 
     <LinearLayout
-        android:id="@+id/item_song_title_container"
+        android:id="@+id/item_playlist_title_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="left|center_vertical"
@@ -52,7 +30,7 @@
         android:padding="5dp">
 
         <TextView
-            android:id="@+id/item_song_title_text"
+            android:id="@+id/item_playlist_title_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:ellipsize="end"
@@ -62,29 +40,21 @@
             tools:text="Title" />
 
         <TextView
-            android:id="@+id/item_song_subtitle"
+            android:id="@+id/item_playlist_subtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             tools:text="Subtitle" />
 
     </LinearLayout>
 
-    <CheckBox
-        android:id="@+id/item_song_fav_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:button="@drawable/sl_favorite_24dp" />
-
     <Button
+        android:id="@+id/item_playlist_menu_button"
         style="?attr/materialIconButtonStyle"
-        android:id="@+id/item_song_menu_button"
-        android:textColor="?attr/colorOnSurface"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_gravity="center_vertical"
         android:layout_weight="0"
-        app:icon="@drawable/ic_menu_button"
-        />
+        android:textColor="?attr/colorOnSurface"
+        app:icon="@drawable/ic_menu_button" />
 
 </LinearLayout>
