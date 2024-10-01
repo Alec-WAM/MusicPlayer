@@ -75,4 +75,10 @@ public class CustomPlaylistItemTouchHelperCallback extends ItemTouchHelper.Callb
         // Customize the drawing of the item during drag if necessary
         super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
     }
+
+    @Override
+    public boolean isLongPressDragEnabled() {
+        // Disable long press drag; we will handle drag manually from the handle
+        return false;
+    }
 }

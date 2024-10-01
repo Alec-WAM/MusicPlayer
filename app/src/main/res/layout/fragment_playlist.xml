@@ -1,105 +1,115 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/playlist_container"
+    android:id="@+id/playlist_container_scroll"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ui.playlists.PlaylistFragment">
 
-    <LinearLayout
-        android:id="@+id/playlist_header_container"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/playlist_container"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorSurface"
-        android:orientation="vertical"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_height="wrap_content">
 
         <LinearLayout
-            android:id="@+id/playlist_info_container"
+            android:id="@+id/playlist_header_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:id="@+id/playlist_info_cover"
-                android:layout_width="200dp"
-                android:layout_height="200dp"
-                android:layout_weight="0"
-                android:adjustViewBounds="true"
-                android:padding="5dp"
-                android:scaleType="fitCenter"
-                tools:src="@tools:sample/avatars" />
+            android:background="?attr/colorSurface"
+            android:orientation="vertical"
+            android:paddingTop="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
             <LinearLayout
-                android:id="@+id/playlist_info_text_container"
+                android:id="@+id/playlist_info_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/playlist_info_cover"
+                    android:layout_width="200dp"
+                    android:layout_height="200dp"
+                    android:layout_weight="0"
+                    android:adjustViewBounds="true"
+                    android:padding="5dp"
+                    android:scaleType="fitCenter"
+                    tools:src="@tools:sample/avatars" />
+
+                <LinearLayout
+                    android:id="@+id/playlist_info_text_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:padding="5dp">
+
+                    <TextView
+                        android:id="@+id/playlist_info_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="20sp"
+                        tools:text="Playlist Name" />
+
+                    <TextView
+                        android:id="@+id/playlist_info_sub_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="14sp"
+                        tools:text="Subtext" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/playlist_info_button_container"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="8dp"
                 android:layout_weight="1"
-                android:orientation="vertical"
-                android:padding="5dp">
+                android:gravity="center_horizontal"
+                android:orientation="horizontal"
+                android:paddingVertical="2dp">
 
-                <TextView
-                    android:id="@+id/playlist_info_title"
-                    android:layout_width="match_parent"
+                <Button
+                    android:id="@+id/playlist_info_button_play"
+                    style="@style/Widget.Material3.Button.Icon"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textSize="20sp"
-                    tools:text="Playlist Name" />
+                    android:layout_marginHorizontal="4dp"
+                    android:layout_weight="1"
+                    android:text="Play"
+                    app:icon="@drawable/ic_play" />
 
-                <TextView
-                    android:id="@+id/playlist_info_sub_title"
-                    android:layout_width="match_parent"
+                <Button
+                    android:id="@+id/playlist_info_button_shuffle"
+                    style="@style/Widget.Material3.Button.TonalButton.Icon"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textSize="14sp"
-                    tools:text="Subtext" />
+                    android:layout_marginHorizontal="4dp"
+                    android:layout_weight="1"
+                    android:text="Shuffle"
+                    app:icon="@drawable/ic_shuffle" />
+
             </LinearLayout>
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/playlist_info_button_container"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/listPlaylistSongs"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="8dp"
-            android:layout_weight="1"
-            android:gravity="center_horizontal"
-            android:orientation="horizontal"
-            android:paddingVertical="2dp">
+            android:layout_height="wrap_content"
+            android:background="?attr/colorSurfaceContainer"
+            android:nestedScrollingEnabled="false"
+            android:scrollbars="none"
+            app:layout_constraintTop_toBottomOf="@id/playlist_header_container"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <Button
-                android:id="@+id/playlist_info_button_play"
-                style="@style/Widget.Material3.Button.Icon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="4dp"
-                android:layout_weight="1"
-                android:text="Play"
-                app:icon="@drawable/ic_play" />
-
-            <Button
-                android:id="@+id/playlist_info_button_shuffle"
-                style="@style/Widget.Material3.Button.TonalButton.Icon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="4dp"
-                android:layout_weight="1"
-                android:text="Shuffle"
-                app:icon="@drawable/ic_shuffle" />
-
-        </LinearLayout>
-    </LinearLayout>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/listPlaylistSongs"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:background="?attr/colorSurfaceContainer"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/playlist_header_container" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>

@@ -38,4 +38,10 @@ public interface PlaylistSongDao {
     @Query("SELECT COUNT(*) FROM playlist_song WHERE playlistId = :playlistId")
     int getPlaylistSize(int playlistId);
 
+    @Query("SELECT ps.songId " +
+            "FROM playlist_song ps " +
+            "INNER JOIN favorite_songs fs ON ps.songId = fs.id " +
+            "WHERE ps.playlistId = :playlistId")
+    LiveData<List<String>> getFavoriteSongIdsInPlaylist(long playlistId);
+
 }

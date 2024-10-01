@@ -8,6 +8,9 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -17,9 +20,11 @@ import java.util.List;
 import java.util.Collections;
 
 import alec_wam.musicplayer.R;
+import alec_wam.musicplayer.data.database.AppDatabaseViewModel;
 import alec_wam.musicplayer.data.database.entities.PlaylistSong;
 import alec_wam.musicplayer.database.MusicDatabase;
 import alec_wam.musicplayer.database.MusicFile;
+import alec_wam.musicplayer.ui.album.AlbumFragment;
 import alec_wam.musicplayer.utils.ThemedDrawableUtils;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,10 +32,13 @@ import androidx.recyclerview.widget.RecyclerView;
 public class PlaylistSongAdapter extends RecyclerView.Adapter<PlaylistSongAdapter.ViewHolder> {
 
     private Context context;
+    private final AppDatabaseViewModel databaseViewModel;
     private List<PlaylistSong> playlistSongs;
+    private List<String> favoriteSongIds;
     private ItemTouchHelper itemTouchHelper;
     private OnItemMovedListener onItemMovedListener;
     private OnPlaylistSongClickListener onItemClickedListener;
+    private OnPlaylistSongMenuClickListener onItemMenuClickedListener;
 
     private int playingPlaylistSongId = -1;
 
@@ -39,7 +47,11 @@ public class PlaylistSongAdapter extends RecyclerView.Adapter<PlaylistSongAdapte
     }
 
     public interface OnPlaylistSongClickListener {
-        void onClicked(int playlistSongId);
+        void onPlaylistSongClicked(int playlistSongId);
+    }
+
+    public interface OnPlaylistSongMenuClickListener {
+        void onMenuClicked(PlaylistSong playlistSong);
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -48,6 +60,8 @@ public class PlaylistSongAdapter extends RecyclerView.Adapter<PlaylistSongAdapte
         public ImageView songAlbumCover;
         public TextView songTitle;
         public TextView songArtist;
+        public CheckBox favSongCheckbox;
+        public Button menuButton;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -56,14 +70,18 @@ public class PlaylistSongAdapter extends RecyclerView.Adapter<PlaylistSongAdapte
             songAlbumCover = itemView.findViewById(R.id.item_song_album_image);
             songTitle = itemView.findViewById(R.id.item_song_title_text);
             songArtist = itemView.findViewById(R.id.item_song_subtitle);
+            favSongCheckbox = itemView.findViewById(R.id.item_song_fav_button);
+            menuButton = itemView.findViewById(R.id.item_song_menu_button);
         }
     }
 
-    public PlaylistSongAdapter(Context context, List<PlaylistSong> playlistSongs, OnItemMovedListener listener, OnPlaylistSongClickListener onItemClickedListener) {
+    public PlaylistSongAdapter(Context context, AppDatabaseViewModel databaseViewModel, List<PlaylistSong> playlistSongs, OnItemMovedListener listener, OnPlaylistSongClickListener onItemClickedListener, OnPlaylistSongMenuClickListener onItemMenuClickedListener) {
         this.context = context;
+        this.databaseViewModel = databaseViewModel;
         this.playlistSongs = playlistSongs;
         this.onItemMovedListener = listener;
         this.onItemClickedListener = onItemClickedListener;
+        this.onItemMenuClickedListener = onItemMenuClickedListener;
     }
 
     public void setItemTouchHelper(ItemTouchHelper itemTouchHelper) {
@@ -72,6 +90,10 @@ public class PlaylistSongAdapter extends RecyclerView.Adapter<PlaylistSongAdapte
 
     public void setPlayingPlaylistSongId(int playingPlaylistSongId) {
         this.playingPlaylistSongId = playingPlaylistSongId;
+    }
+
+    public void setFavoriteSongIds(List<String> favoriteSongIds){
+        this.favoriteSongIds = favoriteSongIds;
     }
 
     @Override
@@ -123,9 +145,44 @@ public class PlaylistSongAdapter extends RecyclerView.Adapter<PlaylistSongAdapte
             holder.parentView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    PlaylistSongAdapter.this.onItemClickedListener.onClicked(playlistSong.id);
+                    PlaylistSongAdapter.this.onItemClickedListener.onPlaylistSongClicked(playlistSong.id);
                 }
             });
+        }
+
+        final CheckBox favoriteCheckBox = holder.favSongCheckbox;
+        boolean checked = false;
+        if(favoriteSongIds !=null && favoriteSongIds.contains(playlistSong.songId)){
+            checked = true;
+        }
+        favoriteCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
+                if(favoriteCheckBox.getTag() == "ignore"){
+                    return;
+                }
+                if(checked){
+                    databaseViewModel.insertFavoriteSong(playlistSong.songId);
+                }
+                else {
+                    databaseViewModel.deleteFavoriteSong(playlistSong.songId);
+                }
+            }
+        });
+        favoriteCheckBox.setTag("ignore");
+        favoriteCheckBox.setChecked(checked);
+        favoriteCheckBox.setTag(null);
+
+        if(this.onItemMenuClickedListener !=null){
+            holder.menuButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    PlaylistSongAdapter.this.onItemMenuClickedListener.onMenuClicked(playlistSong);
+                }
+            });
+        }
+        else {
+            holder.menuButton.setOnClickListener(null);
         }
 
         if(playlistSong.id == this.playingPlaylistSongId){

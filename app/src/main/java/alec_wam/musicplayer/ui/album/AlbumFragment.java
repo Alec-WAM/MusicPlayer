@@ -40,10 +40,12 @@ import alec_wam.musicplayer.database.MusicFile;
 import alec_wam.musicplayer.R;
 import alec_wam.musicplayer.databinding.FragmentAlbumBinding;
 import alec_wam.musicplayer.services.MusicPlayerService;
+import alec_wam.musicplayer.ui.playlists.PlaylistFragment;
 import alec_wam.musicplayer.ui.views.ModalMenuBottomSheet;
 import alec_wam.musicplayer.ui.views.MusicPlayerOverlay;
 import alec_wam.musicplayer.utils.FragmentUtils;
 import alec_wam.musicplayer.utils.MusicPlayerUtils;
+import alec_wam.musicplayer.utils.PlaylistUtils;
 import alec_wam.musicplayer.utils.ThemedDrawableUtils;
 import alec_wam.musicplayer.utils.Utils;
 import androidx.fragment.app.Fragment;
@@ -423,7 +425,8 @@ public class AlbumFragment extends Fragment {
             menuOptionList.add(new ModalMenuBottomSheet.MenuOption(R.drawable.ic_playlist_add, "Add to Playlist", new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    showAddToPlaylistDialog(musicFile.getId());
+//                    showAddToPlaylistDialog(musicFile.getId());
+                    PlaylistUtils.showAddToPlaylistDialog(AlbumFragment.this.getContext(), musicFile.getId(), databaseViewModel);
                 }
             }));
             ModalMenuBottomSheet modal = new ModalMenuBottomSheet(R.layout.layout_bottom_sheet_menu, imageLoader, title, subText, menuOptionList);

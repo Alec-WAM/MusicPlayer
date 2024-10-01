@@ -49,11 +49,15 @@ public class AppDatabaseViewModel extends AndroidViewModel {
     //PLAYLISTS
     public LiveData<List<Playlist>> getAllPlaylists() { return mAllPlaylists; }
 
+    public List<Playlist> getAllPlaylistsSync() { return mRepository.getAllPlaylistsSync(); }
+
     public LiveData<Playlist> getPlaylist(int playlistId) { return mRepository.getPlaylistById(playlistId); }
 
     public void insertPlaylist(String name) { mRepository.insertPlaylist(name); }
 
     public void deletePlaylist(int id) { mRepository.deletePlaylist(id); }
+
+    public void updatePlaylistCoverImage(int playlistId, String filePath){ mRepository.updatePlaylistCoverImage(playlistId, filePath); }
 
     public LiveData<List<PlaylistSong>> getPlaylistSongs(int playlistId) { return mRepository.getPlaylistSongs(playlistId); }
 
@@ -61,5 +65,9 @@ public class AppDatabaseViewModel extends AndroidViewModel {
 
     public void deletePlaylistSong(int playlistSongId) { mRepository.deletePlaylistSong(playlistSongId); }
 
+    public int getPlaylistSize(int playlistId) { return mRepository.getPlaylistSize(playlistId); }
+
     public void updatePlaylistSongPosition(int playlistSongId, int position) { mRepository.updatePlaylistSongPosition(playlistSongId, position); }
+
+    public LiveData<List<String>> getFavoriteSongIdsInPlaylist(int playlistId) { return mRepository.getFavoriteSongIdsInPlaylist(playlistId); }
 }

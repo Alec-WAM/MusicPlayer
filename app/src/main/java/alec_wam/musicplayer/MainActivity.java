@@ -1,9 +1,12 @@
 package alec_wam.musicplayer;
 
+import android.app.Activity;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,13 +22,19 @@ import com.google.common.util.concurrent.MoreExecutors;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
+import alec_wam.musicplayer.data.database.AppDatabaseRepository;
 import alec_wam.musicplayer.database.MusicDatabase;
 import alec_wam.musicplayer.services.MusicPlayerService;
 import alec_wam.musicplayer.ui.views.MusicPlayerOverlay;
 import alec_wam.musicplayer.ui.views.SmallMusicPlayerControls;
+import alec_wam.musicplayer.utils.PlaylistUtils;
 import alec_wam.musicplayer.utils.ThemedDrawableUtils;
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContract;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
@@ -40,11 +49,14 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import alec_wam.musicplayer.databinding.ActivityMainBinding;
 
+import static alec_wam.musicplayer.services.MusicPlayerService.BUNDLE_PLAYLIST;
+
 public class MainActivity extends AppCompatActivity {
 
     public static final Logger LOGGER = Logger.getLogger("MainActivity");
 
     private static final int REQUEST_CODE_PERMISSIONS = 1001;
+    public static final int REQUEST_CODE_PICK_IMAGE = 1;
 
     private ActivityMainBinding binding;
     public static NavController navController;
@@ -53,6 +65,9 @@ public class MainActivity extends AppCompatActivity {
     private MediaController mediaController;
 
     private MusicPlayerOverlay playerView;
+    private AppDatabaseRepository appDatabaseRepository;
+    private ActivityResultLauncher<Intent> imagePickerLauncher;
+    private int imageSelectPlaylistId = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +119,24 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
 
         checkPermissions();
+
+        appDatabaseRepository = new AppDatabaseRepository(getApplication());
+
+        imagePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Intent data = result.getData();
+                        if (data != null && data.getData() != null) {
+                            Uri selectedImageUri = data.getData();
+                            if(this.imageSelectPlaylistId >= 0) {
+                                PlaylistUtils.saveImageToInternalStorage(this, appDatabaseRepository, selectedImageUri, this.imageSelectPlaylistId);
+                                this.imageSelectPlaylistId = -1;
+                            }
+                        }
+                    }
+                }
+        );
 
         playerView = binding.playerView;
         playerView.setVisibility(View.GONE);
@@ -191,6 +224,13 @@ public class MainActivity extends AppCompatActivity {
         else {
             startMusicPlayerService();
         }
+    }
+
+    public void openPlaylistImagePicker(int playlistId){
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType("image/*");
+        this.imageSelectPlaylistId = playlistId;
+        imagePickerLauncher.launch(intent);
     }
 
     @Override

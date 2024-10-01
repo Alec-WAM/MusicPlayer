@@ -28,7 +28,13 @@ public interface PlaylistDao {
     @Query("SELECT * FROM playlists WHERE id = :playlistId")
     LiveData<Playlist> getPlaylistById(int playlistId);
 
+    @Query("SELECT * FROM playlists WHERE id = :playlistId")
+    Playlist getPlaylistByIdSync(int playlistId);
+
     @Query("SELECT * FROM playlists")
     LiveData<List<Playlist>> getAllPlaylists();
+
+    @Query("SELECT * FROM playlists")
+    List<Playlist> getAllPlaylistsSync();
 
 }

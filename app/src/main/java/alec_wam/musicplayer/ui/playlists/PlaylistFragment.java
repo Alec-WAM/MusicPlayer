@@ -4,6 +4,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,10 +14,14 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import alec_wam.musicplayer.MainActivity;
 import alec_wam.musicplayer.R;
 import alec_wam.musicplayer.data.database.AppDatabaseViewModel;
 import alec_wam.musicplayer.data.database.entities.PlaylistSong;
@@ -23,12 +29,15 @@ import alec_wam.musicplayer.database.MusicDatabase;
 import alec_wam.musicplayer.database.MusicFile;
 import alec_wam.musicplayer.databinding.FragmentPlaylistBinding;
 import alec_wam.musicplayer.services.MusicPlayerService;
-import alec_wam.musicplayer.ui.album.AlbumFragment;
+import alec_wam.musicplayer.ui.views.ModalMenuBottomSheet;
 import alec_wam.musicplayer.utils.MusicPlayerUtils;
+import alec_wam.musicplayer.utils.PlaylistUtils;
 import alec_wam.musicplayer.utils.ThemedDrawableUtils;
 import androidx.fragment.app.Fragment;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.media3.common.MediaItem;
@@ -41,7 +50,7 @@ import static alec_wam.musicplayer.utils.MusicPlayerUtils.BUNDLE_SONG_CHANGE_SON
 import static alec_wam.musicplayer.utils.MusicPlayerUtils.BUNDLE_SONG_CHANGE_SONG_PLAYLIST_SONG_ID;
 import static alec_wam.musicplayer.utils.MusicPlayerUtils.INTENT_SONG_CHANGE;
 
-public class PlaylistFragment extends Fragment implements PlaylistSongAdapter.OnItemMovedListener, PlaylistSongAdapter.OnPlaylistSongClickListener {
+public class PlaylistFragment extends Fragment implements PlaylistSongAdapter.OnItemMovedListener, PlaylistSongAdapter.OnPlaylistSongClickListener, PlaylistSongAdapter.OnPlaylistSongMenuClickListener {
 
     public static final String ARG_PLAYLIST = "playlist";
     private FragmentPlaylistBinding binding;
@@ -50,6 +59,8 @@ public class PlaylistFragment extends Fragment implements PlaylistSongAdapter.On
     private PlaylistSongAdapter adaptor;
 
     private AppDatabaseViewModel databaseViewModel;
+
+    //TODO Move playlist order, name, and cover image to and edit mode
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -93,6 +104,20 @@ public class PlaylistFragment extends Fragment implements PlaylistSongAdapter.On
                 //TODO Set Playlist Image
                 titleView.setText(playlist.name);
                 subTitleView.setText(null);
+                Drawable themed_default_playlist = ThemedDrawableUtils.getThemedIcon(PlaylistFragment.this.getContext(), R.drawable.ic_playlist_default, com.google.android.material.R.attr.colorPrimary, Color.BLACK);
+                Glide.with(PlaylistFragment.this.getContext())
+                        .load(playlist.coverImagePath !=null ? new File(playlist.coverImagePath) : null) // Load the image from the stored file path
+                        .placeholder(themed_default_playlist) // Default image if none exists
+                        .into(cover);
+            }
+        });
+
+        cover.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(playlistId >= 0) {
+                    openImageSelector(playlistId);
+                }
             }
         });
 
@@ -113,11 +138,16 @@ public class PlaylistFragment extends Fragment implements PlaylistSongAdapter.On
         });
 
         final RecyclerView recyclerView = binding.listPlaylistSongs;
-        recyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));
+        recyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()) {
+            @Override
+            public boolean canScrollVertically(){
+                return false;
+            }
+        });
 
         playlistSongList = new ArrayList<>();
 
-        adaptor = new PlaylistSongAdapter(getContext(), playlistSongList, this, this);
+        adaptor = new PlaylistSongAdapter(getContext(), this.databaseViewModel, playlistSongList, this, this, this);
 //        ItemTouchHelper itemTouchHelper = getItemTouchHelper();
         CustomPlaylistItemTouchHelperCallback itemTouchHelperCallback = new CustomPlaylistItemTouchHelperCallback(adaptor);
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(itemTouchHelperCallback);
@@ -130,6 +160,11 @@ public class PlaylistFragment extends Fragment implements PlaylistSongAdapter.On
             databaseViewModel.getPlaylistSongs(this.playlistId).observe(getViewLifecycleOwner(), playlistSongs -> {
                 this.playlistSongList.clear();
                 this.playlistSongList.addAll(playlistSongs);
+                this.adaptor.notifyDataSetChanged();
+            });
+
+            databaseViewModel.getFavoriteSongIdsInPlaylist(this.playlistId).observe(getViewLifecycleOwner(), favoriteSongIds -> {
+                this.adaptor.setFavoriteSongIds(favoriteSongIds);
                 this.adaptor.notifyDataSetChanged();
             });
         }
@@ -179,6 +214,52 @@ public class PlaylistFragment extends Fragment implements PlaylistSongAdapter.On
         return itemTouchHelper;
     }
 
+    public void buildSongModalMenu(final PlaylistSong playlistSong){
+        final MusicFile musicFile = MusicDatabase.SONGS.get(playlistSong.songId);
+        if(musicFile !=null) {
+            String title = musicFile.getName();
+            String subText = musicFile.getArtist();
+            ModalMenuBottomSheet.ImageLoader imageLoader = new ModalMenuBottomSheet.ImageLoader() {
+                @Override
+                public void loadImage(ImageView imageView) {
+                    Drawable themed_unknown_album = ThemedDrawableUtils.getThemedIcon(getContext(), R.drawable.ic_unkown_album, com.google.android.material.R.attr.colorSecondary, Color.BLACK);
+                    Glide.with(PlaylistFragment.this.getContext())
+                            .load(musicFile.getAlbumArtUri())  // URI for album art
+                            .placeholder(themed_unknown_album)  // Optional placeholder
+                            .error(themed_unknown_album)  // Optional error image
+                            .into(imageView);
+                }
+            };
+            List<ModalMenuBottomSheet.MenuOption> menuOptionList = new ArrayList<>();
+            menuOptionList.add(new ModalMenuBottomSheet.MenuOption(R.drawable.ic_playlist_add, "Add to Playlist", new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    PlaylistUtils.showAddToPlaylistDialog(PlaylistFragment.this.getContext(), playlistSong.songId, databaseViewModel);
+                }
+            }));
+            menuOptionList.add(new ModalMenuBottomSheet.MenuOption(R.drawable.ic_delete, "Remove from Playlist", new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    databaseViewModel.deletePlaylistSong(playlistSong.id);
+                }
+            }));
+            ModalMenuBottomSheet modal = new ModalMenuBottomSheet(R.layout.layout_bottom_sheet_menu, imageLoader, title, subText, menuOptionList);
+            if (getContext() instanceof FragmentActivity) {
+                FragmentManager fragmentManager = ((FragmentActivity) getContext()).getSupportFragmentManager();
+                modal.show(fragmentManager, ModalMenuBottomSheet.TAG);
+            }
+        }
+    }
+
+    private void openImageSelector(int playlistId) {
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType("image/*");
+        intent.putExtra("playlistId", playlistId); // Pass the playlist ID
+        if(getActivity() instanceof MainActivity) {
+            ((MainActivity)getActivity()).openPlaylistImagePicker(playlistId);
+        }
+    }
+
     @Override
     public void onDestroyView() {
         LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(broadcastReceiver);
@@ -197,7 +278,12 @@ public class PlaylistFragment extends Fragment implements PlaylistSongAdapter.On
     }
 
     @Override
-    public void onClicked(int playlistSongId) {
+    public void onPlaylistSongClicked(int playlistSongId) {
         MusicPlayerUtils.playPlaylist(getContext(), this.playlistId, Optional.of(playlistSongId), Optional.empty());
+    }
+
+    @Override
+    public void onMenuClicked(PlaylistSong playlistSong) {
+        buildSongModalMenu(playlistSong);
     }
 }

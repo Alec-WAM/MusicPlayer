@@ -52,7 +52,7 @@ public class PlaylistsFragment extends Fragment implements PlaylistListAdaptor.O
 
         playlistList = new ArrayList<>();
 
-        adaptor = new PlaylistListAdaptor(this.getContext(), playlistList, this);
+        adaptor = new PlaylistListAdaptor(this.getContext(), playlistList, databaseViewModel, this);
         recyclerView.setAdapter(adaptor);
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
         recyclerView.addItemDecoration(dividerItemDecoration);

@@ -91,6 +91,8 @@ public class AppDatabaseRepository {
     //PLAYLISTS
     public LiveData<List<Playlist>> getAllPlaylists(){ return mAllPlaylists; }
 
+    public List<Playlist> getAllPlaylistsSync() { return mPlaylistDao.getAllPlaylistsSync(); }
+
     public LiveData<Playlist> getPlaylistById(int playlistId){
         return mPlaylistDao.getPlaylistById(playlistId);
     }
@@ -109,8 +111,22 @@ public class AppDatabaseRepository {
         });
     }
 
+    public void updatePlaylistCoverImage(int playlistId, String filePath) {
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            Playlist playlist = mPlaylistDao.getPlaylistByIdSync(playlistId);
+            if(playlist !=null) {
+                playlist.coverImagePath = filePath;
+                mPlaylistDao.updatePlaylist(playlist);
+            }
+        });
+    }
+
     public LiveData<List<PlaylistSong>> getPlaylistSongs(int playlistId){
         return mPlaylistSongDao.getSongsInPlaylist(playlistId);
+    }
+
+    public int getPlaylistSize(int playlistId){
+        return mPlaylistSongDao.getPlaylistSize(playlistId);
     }
 
     public List<PlaylistSong> getPlaylistSongsSync(int playlistId){
@@ -142,5 +158,5 @@ public class AppDatabaseRepository {
         });
     }
 
-
+    public LiveData<List<String>> getFavoriteSongIdsInPlaylist(int playlistId){ return mPlaylistSongDao.getFavoriteSongIdsInPlaylist(playlistId); }
 }

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "2ffeea95c8a34f3377bfa46e679724ae",
+    "identityHash": "a501677a2fc5fecd4d476ff55f2574d9",
     "entities": [
       {
         "tableName": "favorite_songs",
@@ -52,7 +52,7 @@
       },
       {
         "tableName": "playlists",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT, `cover_image_path` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -63,6 +63,12 @@
           {
             "fieldPath": "name",
             "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "coverImagePath",
+            "columnName": "cover_image_path",
             "affinity": "TEXT",
             "notNull": false
           }
@@ -140,7 +146,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2ffeea95c8a34f3377bfa46e679724ae')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a501677a2fc5fecd4d476ff55f2574d9')"
     ]
   }
 }

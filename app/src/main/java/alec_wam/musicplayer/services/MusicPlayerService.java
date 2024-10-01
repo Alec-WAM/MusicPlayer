@@ -84,6 +84,7 @@ public class MusicPlayerService extends MediaLibraryService {
     public static final String BUNDLE_UPDATE_QUEUE_SONGS = "songs";
     public static final String INTENT_CLEAR_QUEUE = "MP_CLEAR_QUEUE";
 
+    public static final String BUNDLE_PLAYLIST= "playlist";
     public static final String BUNDLE_PLAYLIST_SONG = "playlist_song";
 
     public static final String NOTIFICATION_CHANNEL_ID = "music_player_service";
