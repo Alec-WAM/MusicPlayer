@@ -108,4 +108,5 @@
     <string name="menu_artists">Artists</string>
     <string name="sub_menu_artist">Artist</string>
     <string name="home_recent_albums">Recent Albums</string>
+    <string name="dialog_add_to_playlist">Add to Playlist</string>
 </resources>

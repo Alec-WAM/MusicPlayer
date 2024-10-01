@@ -14,6 +14,16 @@
         android:layout_gravity="center"
         android:layout_weight="0" />
 
+    <ImageView
+        android:id="@+id/item_playlist_selection_image"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:adjustViewBounds="true"
+        android:layout_gravity="center"
+        android:padding="5dp"
+        android:scaleType="fitCenter"
+        tools:srcCompat="@tools:sample/avatars" />
+
     <TextView
         android:id="@+id/item_playlist_selection_text"
         android:layout_width="wrap_content"

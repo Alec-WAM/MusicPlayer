@@ -158,6 +158,9 @@ public class PlaylistFragment extends Fragment implements PlaylistSongAdapter.On
 
         if(this.playlistId >= 0) {
             databaseViewModel.getPlaylistSongs(this.playlistId).observe(getViewLifecycleOwner(), playlistSongs -> {
+                String songCount = playlistSongs.size() + " song" + (playlistSongs.size() > 1 ? "s" : "");
+                subTitleView.setText(songCount);
+
                 this.playlistSongList.clear();
                 this.playlistSongList.addAll(playlistSongs);
                 this.adaptor.notifyDataSetChanged();

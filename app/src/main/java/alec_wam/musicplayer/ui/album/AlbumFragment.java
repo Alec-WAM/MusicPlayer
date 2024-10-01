@@ -11,6 +11,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -72,6 +73,7 @@ public class AlbumFragment extends Fragment {
 
     private String albumId;
     private boolean isFavoriteSongs;
+    private boolean isFavCheckboxTouched = false;
     private Map<String, View> songViews;
     private String playingSongId = null;
 
@@ -195,36 +197,38 @@ public class AlbumFragment extends Fragment {
             }
         });
 
-        CheckBox favoriteAlbumCheckBox = binding.albumFavButton;
+        final CheckBox favoriteAlbumCheckBox = binding.albumFavButton;
         if(isFavoriteSongs){
             favoriteAlbumCheckBox.setVisibility(View.GONE);
         }
         else {
             favoriteAlbumCheckBox.setVisibility(View.VISIBLE);
+            favoriteAlbumCheckBox.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View view, MotionEvent motionEvent) {
+                    isFavCheckboxTouched = true;
+                    return false;
+                }
+            });
             favoriteAlbumCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
-                    if(favoriteAlbumCheckBox.getTag() == "ignore"){
+                    if(!isFavCheckboxTouched){
                         return;
                     }
-                    LOGGER.info("Check changed Album: " + albumId);
-                    //TODO Fix this being called when Fragment is reloaded
-//                    if(checked){
-//                        AlbumFragment.this.databaseViewModel.insertFavoriteAlbum(albumId);
-//                    }
-//                    else {
-//                        AlbumFragment.this.databaseViewModel.deleteFavoriteAlbum(albumId);
-//                    }
+                    if(checked){
+                        AlbumFragment.this.databaseViewModel.insertFavoriteAlbum(albumId);
+                    }
+                    else {
+                        AlbumFragment.this.databaseViewModel.deleteFavoriteAlbum(albumId);
+                    }
+                    isFavCheckboxTouched = false;
                 }
             });
-
             databaseViewModel.getAllFavoriteAlbums().observe(getViewLifecycleOwner(), favoriteAlbums -> {
                 // Update UI with the favorite song items
                 if (binding != null && albumId != null) {
-                    CheckBox favoriteAlbumCheckbox = binding.albumFavButton;
-                    favoriteAlbumCheckbox.setTag("ignore");
-                    favoriteAlbumCheckbox.setChecked(favoriteAlbums.contains(albumId));
-                    favoriteAlbumCheckbox.setTag(null);
+                    binding.albumFavButton.setChecked(favoriteAlbums.contains(albumId));
                 }
             });
         }

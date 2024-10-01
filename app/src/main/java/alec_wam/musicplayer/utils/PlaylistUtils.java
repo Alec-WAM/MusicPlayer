@@ -3,13 +3,18 @@ package alec_wam.musicplayer.utils;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -25,6 +30,7 @@ import alec_wam.musicplayer.R;
 import alec_wam.musicplayer.data.database.AppDatabaseRepository;
 import alec_wam.musicplayer.data.database.AppDatabaseViewModel;
 import alec_wam.musicplayer.data.database.entities.Playlist;
+import alec_wam.musicplayer.ui.playlists.PlaylistFragment;
 import androidx.core.content.ContextCompat;
 
 public class PlaylistUtils {
@@ -65,8 +71,16 @@ public class PlaylistUtils {
         final LinearLayout scrollContainer = dialogView.findViewById(R.id.dialog_add_to_playlist_scroll_container);
         for(final Playlist playlist : playlists){
             View playlistSelectionView = inflater.inflate(R.layout.list_item_playlist_selection, null);
+            ImageView playlistSelectionImageView = playlistSelectionView.findViewById(R.id.item_playlist_selection_image);
             TextView playlistTextView = playlistSelectionView.findViewById(R.id.item_playlist_selection_text);
             playlistTextView.setText(playlist.name);
+
+            Drawable themed_default_playlist = ThemedDrawableUtils.getThemedIcon(context, R.drawable.ic_playlist_default, com.google.android.material.R.attr.colorPrimary, Color.BLACK);
+            Glide.with(context)
+                    .load(playlist.coverImagePath !=null ? new File(playlist.coverImagePath) : null) // Load the image from the stored file path
+                    .placeholder(themed_default_playlist) // Default image if none exists
+                    .into(playlistSelectionImageView);
+
             CheckBox playlistCheckbox = playlistSelectionView.findViewById(R.id.item_playlist_selection_checkbox);
             playlistCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
