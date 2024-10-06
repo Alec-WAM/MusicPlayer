@@ -74,6 +74,10 @@ public class AppDatabaseRepository {
         return mAllFavoriteAlbums;
     }
 
+    public List<String> getAllFavoriteAlbumsSync(){
+        return mFavoriteAlbumDao.getAllIdsSync();
+    }
+
     public void insertFavoriteAlbum(String albumId) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
             FavoriteAlbum favoriteAlbum = new FavoriteAlbum();

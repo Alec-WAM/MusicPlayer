@@ -181,7 +181,7 @@ public class MusicPlayerService extends MediaLibraryService {
         AudioAttributes audioAttributes = new AudioAttributes.Builder().setContentType(C.AUDIO_CONTENT_TYPE_MUSIC).setUsage(C.USAGE_MEDIA).build();
         player = new ExoPlayer.Builder(this).setAudioAttributes(audioAttributes, true).build();
         musicPlayerSavedDataManager = new MusicPlayerSavedDataManager(this.getApplicationContext());
-        mediaLibrarySession = new MediaLibrarySession.Builder(this, player, new LibrarySessionCallback(musicPlayerSavedDataManager)).build();
+        mediaLibrarySession = new MediaLibrarySession.Builder(this, player, new LibrarySessionCallback(backgroundExecutor, appDatabaseRepository, musicPlayerSavedDataManager)).build();
 
         player.addListener(new Player.Listener() {
             @Override
@@ -294,7 +294,11 @@ public class MusicPlayerService extends MediaLibraryService {
         return this.queue.isEmpty();
     }
 
-    public static MediaItem buildMediaItem(MusicFile musicFile){
+    public static MediaItem buildMediaItem(MusicFile musicFile) {
+        return buildMediaItem(musicFile, null);
+    }
+
+    public static MediaItem buildMediaItem(MusicFile musicFile, Bundle extras){
         if(musicFile == null){
             return null;
         }
@@ -307,6 +311,7 @@ public class MusicPlayerService extends MediaLibraryService {
                                         .setArtworkUri(musicFile.getAlbumArtUri())
                                         .setTitle(musicFile.getName())
                                         .setArtist(musicFile.getArtist())
+                                        .setExtras(extras)
                                         .build())
                         .build();
         return mediaItem;
@@ -333,13 +338,16 @@ public class MusicPlayerService extends MediaLibraryService {
         return mediaItem;
     }
 
-    public static MediaItem buildBrowserMediaItem(MusicFile musicFile, boolean isAlbum){
+    public static MediaItem buildBrowserMediaItem(MusicFile musicFile, boolean isAlbum, boolean isFavorite){
         if(musicFile == null){
             return null;
         }
         Bundle extraBundle = new Bundle();
         if(isAlbum){
             extraBundle.putString("album_id", musicFile.getAlbumId());
+        }
+        if(isFavorite){
+            extraBundle.putBoolean("isFavorite", true);
         }
         MediaItem mediaItem =
                 new MediaItem.Builder()
@@ -352,6 +360,7 @@ public class MusicPlayerService extends MediaLibraryService {
                                         .setArtist(musicFile.getArtist())
                                         .setIsBrowsable(false)
                                         .setIsPlayable(true)
+                                        .setExtras(extraBundle)
                                         .build())
                         .setRequestMetadata(new MediaItem.RequestMetadata.Builder().setMediaUri(musicFile.getUri()).setExtras(extraBundle).build())
                         .build();
@@ -570,9 +579,13 @@ public class MusicPlayerService extends MediaLibraryService {
 
     public class LibrarySessionCallback implements MediaLibraryService.MediaLibrarySession.Callback {
 
+        private final ExecutorService backgroundExecutor;
+        private final AppDatabaseRepository appDatabaseRepository;
         private final MusicPlayerSavedDataManager playerSavedDataManager;
 
-        public LibrarySessionCallback(MusicPlayerSavedDataManager sessionManager) {
+        public LibrarySessionCallback(ExecutorService backgroundExecutor, AppDatabaseRepository appDatabaseRepository, MusicPlayerSavedDataManager sessionManager) {
+            this.backgroundExecutor = backgroundExecutor;
+            this.appDatabaseRepository = appDatabaseRepository;
             this.playerSavedDataManager = sessionManager;
         }
 
@@ -633,6 +646,38 @@ public class MusicPlayerService extends MediaLibraryService {
             int indexInAlbum = startIndex;
 
             String mediaId = mediaItem.mediaId;
+            boolean isFavoriteSong = false;
+            Bundle extras = mediaItem.mediaMetadata.extras;
+            if(extras.containsKey("isFavorite")){
+                isFavoriteSong = extras.getBoolean("isFavorite", false);
+            }
+
+            if(isFavoriteSong){
+                return Futures.submitAsync(() -> {
+                    try {
+                        List<MediaItem> favMediaItems = new ArrayList<>();
+                        List<String> favSongIds = this.appDatabaseRepository.getAllFavoriteSongIdsSortedSync();
+                        List<MusicFile> favSongs = favSongIds.stream().map((songId) -> MusicDatabase.SONGS.get(songId)).toList();
+                        int favAlbumIndex = startIndex;
+                        for (int i = 0; i < favSongs.size(); i++) {
+                            MusicFile musicFile  = favSongs.get(i);
+                            if (musicFile.getId().equals(mediaId)) {
+                                favAlbumIndex = i;
+                            }
+                            favMediaItems.add(MusicPlayerService.buildMediaItem(musicFile));
+                        }
+
+                        return Futures.immediateFuture(new MediaSession.MediaItemsWithStartPosition(favMediaItems, favAlbumIndex, startPositionMs));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        List<MediaItem> errorMediaItems = new ArrayList<>();
+                        errorMediaItems.add(mediaItem);
+                        return Futures.immediateFuture(
+                                new MediaSession.MediaItemsWithStartPosition(errorMediaItems, 0, startPositionMs));
+                    }
+                }, backgroundExecutor);
+            }
+
             MusicFile musicFile = MusicDatabase.SONGS.get(mediaId);
             boolean addedAlbum = false;
             if (musicFile != null) {
@@ -672,7 +717,9 @@ public class MusicPlayerService extends MediaLibraryService {
                 if (mediaItem.localConfiguration == null) {
                     MusicFile musicFile = MusicDatabase.SONGS.get(mediaItem.mediaId);
                     if (musicFile != null) {
-                        fixedMediaItems.add(MusicPlayerService.buildMediaItem(musicFile));
+                        Bundle extras = mediaItem.requestMetadata !=null ? mediaItem.requestMetadata.extras : null;
+                        MediaItem fixedMediaItem = MusicPlayerService.buildMediaItem(musicFile, extras);
+                        fixedMediaItems.add(fixedMediaItem);
                     }
                 }
             }
@@ -686,26 +733,6 @@ public class MusicPlayerService extends MediaLibraryService {
                 @NonNull MediaLibraryService.MediaLibrarySession session,
                 @NonNull MediaSession.ControllerInfo controller,
                 @NonNull MediaLibraryService.LibraryParams params) {
-
-            Bundle extras = session.getSessionExtras();
-//            if(extras !=null){
-//                LOGGER.info("Root SessionExtras: " + extras.toString());
-//            }
-//
-//            Bundle hints = controller.getConnectionHints();
-//            if(hints !=null){
-//                LOGGER.info("Root getConnectionHints: " + hints.toString());
-//            }
-//
-//            if(params !=null){
-//                LOGGER.info("Root LibraryParams: " + params.extras.toString());
-//                if(params.isRecent) {
-//                    LOGGER.info("Recent: " + "root");
-//                }
-//                if(params.isSuggested) {
-//                    LOGGER.info("Suggested: " + "root");
-//                }
-//            }
 
             MediaItem rootMediaItem = new MediaItem.Builder()
                     .setMediaId("root_library")
@@ -746,11 +773,11 @@ public class MusicPlayerService extends MediaLibraryService {
 //            }
 
             if (parentId.equalsIgnoreCase("root_library")) {
-                // MediaItem for "Recent"
-                MediaItem recentCategory = new MediaItem.Builder()
-                        .setMediaId("root_recent")
+                // MediaItem for "Home"
+                MediaItem homeCategory = new MediaItem.Builder()
+                        .setMediaId("root_home")
                         .setMediaMetadata(new MediaMetadata.Builder()
-                                .setTitle("Recent")
+                                .setTitle("Home")
                                 .setIsBrowsable(true)
                                 .setIsPlayable(false)
                                 .build())
@@ -776,11 +803,57 @@ public class MusicPlayerService extends MediaLibraryService {
                                 .build())
                         .build();
 
+                // MediaItem for "Playlists"
+                MediaItem playlistsCategory = new MediaItem.Builder()
+                        .setMediaId("root_playlists")
+                        .setMediaMetadata(new MediaMetadata.Builder()
+                                .setTitle("Playlists")
+                                .setIsBrowsable(true)
+                                .setIsPlayable(false)
+                                .build())
+                        .build();
+
                 // Add these root items to the list
-                mediaItems.add(recentCategory);
+                mediaItems.add(homeCategory);
                 mediaItems.add(artistsCategory);
                 mediaItems.add(albumsCategory);
-            } else if (parentId.equalsIgnoreCase("root_recent")) {
+                mediaItems.add(playlistsCategory);
+            } else if (parentId.equalsIgnoreCase("root_home")) {
+                // MediaItem for "Recent Albums"
+                MediaItem recentHomeItem = new MediaItem.Builder()
+                        .setMediaId("recent_albums")
+                        .setMediaMetadata(new MediaMetadata.Builder()
+                                .setTitle("Recent Albums")
+                                .setIsBrowsable(true)
+                                .setIsPlayable(false)
+                                .build())
+                        .build();
+
+                // MediaItem for "Fav Albums"
+                MediaItem favAlbumsHomeItem = new MediaItem.Builder()
+                        .setMediaId("fav_albums")
+                        .setMediaMetadata(new MediaMetadata.Builder()
+                                .setTitle("Favorite Albums")
+                                .setIsBrowsable(true)
+                                .setIsPlayable(false)
+                                .build())
+                        .build();
+
+                // MediaItem for "Fav Songs"
+                MediaItem favSongsHomeItem = new MediaItem.Builder()
+                        .setMediaId("fav_songs")
+                        .setMediaMetadata(new MediaMetadata.Builder()
+                                .setTitle("Favorite Songs")
+                                .setIsBrowsable(true)
+                                .setIsPlayable(false)
+                                .build())
+                        .build();
+
+                // Add these root items to the list
+                mediaItems.add(recentHomeItem);
+                mediaItems.add(favAlbumsHomeItem);
+                mediaItems.add(favSongsHomeItem);
+            } else if (parentId.equalsIgnoreCase("recent_albums")) {
                 List<String> recentAlbums = new ArrayList<>(this.playerSavedDataManager.getRecentAlbums());
                 Collections.reverse(recentAlbums);
                 for (String albumId : recentAlbums) {
@@ -798,6 +871,54 @@ public class MusicPlayerService extends MediaLibraryService {
                             .build();
                     mediaItems.add(albumMediaItem);
                 }
+            } else if (parentId.equalsIgnoreCase("fav_albums")) {
+                return Futures.submitAsync(() -> {
+                    try {
+                        List<MediaItem> favAlbumMediaItems = new ArrayList<>();
+                        List<String> favAlbumIds = this.appDatabaseRepository.getAllFavoriteAlbumsSync();
+                        List<MusicAlbum> favAlbums = favAlbumIds.stream().map((albumId) -> MusicDatabase.getAlbumById(albumId)).filter((album -> album !=null)).sorted(Comparator.comparing(a -> a.getName().toLowerCase())).toList();
+                        for (MusicAlbum album : favAlbums) {
+                            MediaItem albumMediaItem = new MediaItem.Builder()
+                                    .setMediaId("album_" + album.getAlbumId())
+                                    .setMediaMetadata(new MediaMetadata.Builder()
+                                            .setTitle(album.getName())
+                                            .setArtworkUri(album.getAlbumArtUri())
+                                            .setArtist(album.getArtist())
+                                            .setIsBrowsable(true)
+                                            .setIsPlayable(false)
+                                            .build())
+                                    .build();
+                            favAlbumMediaItems.add(albumMediaItem);
+                        }
+
+                        LibraryResult libraryRootResult = LibraryResult.ofItemList(favAlbumMediaItems, params);
+                        return Futures.immediateFuture(libraryRootResult);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return Futures.immediateFuture(LibraryResult.ofError(SessionError.ERROR_BAD_VALUE));
+                    }
+                }, backgroundExecutor);
+            } else if (parentId.equalsIgnoreCase("fav_songs")) {
+                //TODO Add Shuffle Media Item to top
+                return Futures.submitAsync(() -> {
+                    try {
+                        List<MediaItem> favSongMediaItems = new ArrayList<>();
+                        List<String> favSongIds = this.appDatabaseRepository.getAllFavoriteSongIdsSortedSync();
+                        for (String songId : favSongIds) {
+                            MusicFile musicFile = MusicDatabase.SONGS.get(songId);
+                            if(musicFile !=null) {
+                                MediaItem mediaItem = MusicPlayerService.buildBrowserMediaItem(musicFile, false, true);
+                                favSongMediaItems.add(mediaItem);
+                            }
+                        }
+
+                        LibraryResult libraryRootResult = LibraryResult.ofItemList(favSongMediaItems, params);
+                        return Futures.immediateFuture(libraryRootResult);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return Futures.immediateFuture(LibraryResult.ofError(SessionError.ERROR_BAD_VALUE));
+                    }
+                }, backgroundExecutor);
             } else if (parentId.equalsIgnoreCase("root_artists")) {
                 List<MusicArtist> sortedArtists = new ArrayList<>(MusicDatabase.ARTISTS.values());
                 sortedArtists.sort(Comparator.comparing(a -> a.getName().toLowerCase()));
@@ -860,7 +981,7 @@ public class MusicPlayerService extends MediaLibraryService {
                     for (MusicFile musicFile : album.getAllMusicFiles()) {
                         if (musicFile != null) {
 //                            LOGGER.info("URI: " + musicFile.getUri());
-                            MediaItem mediaItem = MusicPlayerService.buildBrowserMediaItem(musicFile, true);
+                            MediaItem mediaItem = MusicPlayerService.buildBrowserMediaItem(musicFile, true, false);
 //                            LOGGER.info("Has RequestMeta: " + (mediaItem.requestMetadata !=null));
                             mediaItems.add(mediaItem);
                         }
@@ -880,7 +1001,7 @@ public class MusicPlayerService extends MediaLibraryService {
                 MediaLibraryService.MediaLibrarySession session, MediaSession.ControllerInfo browser, String mediaId) {
             MusicFile musicFile = MusicDatabase.SONGS.get(mediaId);
             if (musicFile != null) {
-                MediaItem mediaItem = MusicPlayerService.buildBrowserMediaItem(musicFile, true);
+                MediaItem mediaItem = MusicPlayerService.buildBrowserMediaItem(musicFile, true, false);
                 return Futures.immediateFuture(LibraryResult.ofItem(mediaItem, null));
             }
             return Futures.immediateFuture(LibraryResult.ofError(SessionError.ERROR_BAD_VALUE));

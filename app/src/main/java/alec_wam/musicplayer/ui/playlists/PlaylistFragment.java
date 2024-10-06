@@ -101,7 +101,6 @@ public class PlaylistFragment extends Fragment implements PlaylistSongAdapter.On
 
         databaseViewModel.getPlaylist(this.playlistId).observe(getViewLifecycleOwner(), playlist -> {
             if(playlist !=null){
-                //TODO Set Playlist Image
                 titleView.setText(playlist.name);
                 subTitleView.setText(null);
                 Drawable themed_default_playlist = ThemedDrawableUtils.getThemedIcon(PlaylistFragment.this.getContext(), R.drawable.ic_playlist_default, com.google.android.material.R.attr.colorPrimary, Color.BLACK);

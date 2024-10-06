@@ -16,6 +16,7 @@ import alec_wam.musicplayer.R;
 import alec_wam.musicplayer.database.MusicAlbum;
 import alec_wam.musicplayer.services.MusicPlayerSavedDataManager;
 import alec_wam.musicplayer.ui.album.AlbumFragment;
+import alec_wam.musicplayer.ui.album_list.AlbumListFragment;
 import alec_wam.musicplayer.utils.FragmentUtils;
 import alec_wam.musicplayer.utils.ThemedDrawableUtils;
 import androidx.annotation.NonNull;
@@ -65,11 +66,11 @@ public class HomeFragment extends Fragment {
 
         List<SpecialItemAdaptor.SpecialHomeItem> specialItems = new ArrayList<>();
 
-        Drawable favoriteDrawable = ThemedDrawableUtils.getThemedIcon(this.getContext(), R.drawable.ic_favorite_filled_24dp, com.google.android.material.R.attr.colorPrimary, Color.BLACK);
+        Drawable favoriteSongDrawable = ThemedDrawableUtils.getThemedIcon(this.getContext(), R.drawable.ic_music_note, com.google.android.material.R.attr.colorPrimary, Color.BLACK);
         Bundle favoriteSongsBundle = new Bundle();
         favoriteSongsBundle.putBoolean(AlbumFragment.ARG_IS_FAVORITES, true);
         SpecialItemAdaptor.SpecialHomeItem favoriteSongsItem = new SpecialItemAdaptor.SpecialHomeItem(
-                favoriteDrawable,
+                favoriteSongDrawable,
                 "Favorite Songs",
                 "",
                 R.id.action_navigation_home_to_navigation_album,
@@ -77,8 +78,20 @@ public class HomeFragment extends Fragment {
         );
         specialItems.add(favoriteSongsItem);
 
+        Drawable favoriteAlbumDrawable = ThemedDrawableUtils.getThemedIcon(this.getContext(), R.drawable.ic_unkown_album, com.google.android.material.R.attr.colorPrimary, Color.BLACK);
+        Bundle favoriteAlbumBundle = new Bundle();
+        favoriteAlbumBundle.putBoolean(AlbumListFragment.ARG_IS_FAVORITE_ALBUMS, true);
+        SpecialItemAdaptor.SpecialHomeItem favoriteAlbumsItem = new SpecialItemAdaptor.SpecialHomeItem(
+                favoriteAlbumDrawable,
+                "Favorite Albums",
+                "",
+                R.id.navigation_album_list,
+                favoriteAlbumBundle
+        );
+        specialItems.add(favoriteAlbumsItem);
+
         specialItemRecyclerView = root.findViewById(R.id.home_special_items_recyclerview);
-        specialItemRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2)); // 3 columns
+        specialItemRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
         specialItemRecyclerView.setAdapter(new SpecialItemAdaptor(this.getContext(), specialItems));
         specialItemRecyclerView.setNestedScrollingEnabled(false); // Disable scrolling
         return root;

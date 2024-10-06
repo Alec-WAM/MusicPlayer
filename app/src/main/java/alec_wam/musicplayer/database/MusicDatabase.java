@@ -21,6 +21,8 @@ public class MusicDatabase {
     public static final Map<String, MusicAlbum> ALBUMS = new HashMap<>();
     public static final Map<String, MusicArtist> ARTISTS = new HashMap<>();
 
+    //FIXME On initial load of song database the fragments do not get the update of the library
+
     public static void buildAlbumList(Context context) {
         ALBUMS.clear();
 

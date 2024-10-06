@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.SearchView;
 
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import alec_wam.musicplayer.R;
+import alec_wam.musicplayer.data.database.AppDatabaseViewModel;
 import alec_wam.musicplayer.database.MusicAlbum;
 import alec_wam.musicplayer.database.MusicDatabase;
 import alec_wam.musicplayer.utils.FragmentUtils;
@@ -27,11 +29,22 @@ public class AlbumListFragment extends Fragment implements AlbumListAdaptor.OnAl
 
     private static final long DEBOUNCE_DELAY = 300; // Delay in milliseconds
 
+    public static final String ARG_IS_FAVORITE_ALBUMS = "favoriteAlbums";
+
     private FragmentAlbumsBinding binding;
+    private AppDatabaseViewModel databaseViewModel;
     private List<MusicAlbum> albums;
     private List<MusicAlbum> filteredAlbums;
     private AlbumListAdaptor adaptor;
+    private boolean isFavoriteAlbums = false;
 
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        databaseViewModel = new ViewModelProvider(requireActivity()).get(AppDatabaseViewModel.class);
+    }
+
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         AlbumListViewModel albumListViewModel =
@@ -40,10 +53,25 @@ public class AlbumListFragment extends Fragment implements AlbumListAdaptor.OnAl
         binding = FragmentAlbumsBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
+        if (getArguments() != null) {
+            isFavoriteAlbums = getArguments().getBoolean(ARG_IS_FAVORITE_ALBUMS, false);
+        }
+
 //        final TextView textView = binding.textAlbums;
 //        albumsViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
 
         albums = new ArrayList<>(MusicDatabase.ALBUMS.values());
+        if(isFavoriteAlbums){
+            //TODO Add fav button to album view
+            databaseViewModel.getAllFavoriteAlbums().observe(getViewLifecycleOwner(), favoriteAlbumIds -> {
+                List<MusicAlbum> favoriteAlbums = MusicDatabase.ALBUMS.values().stream().filter((album) -> favoriteAlbumIds.contains(album.getAlbumId())).toList();
+                this.albums = new ArrayList<>(favoriteAlbums);
+                albums.sort(Comparator.comparing(a -> a.getName().toLowerCase()));
+                this.filteredAlbums.clear();
+                this.filteredAlbums.addAll(albums);
+                this.adaptor.notifyDataSetChanged();
+            });
+        }
         albums.sort(Comparator.comparing(a -> a.getName().toLowerCase()));
         filteredAlbums = new ArrayList<>();
         filteredAlbums.addAll(albums);
