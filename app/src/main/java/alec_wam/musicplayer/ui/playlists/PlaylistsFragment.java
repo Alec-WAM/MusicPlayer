@@ -1,6 +1,5 @@
 package alec_wam.musicplayer.ui.playlists;
 
-import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -9,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -19,6 +19,7 @@ import alec_wam.musicplayer.data.database.AppDatabaseViewModel;
 import alec_wam.musicplayer.data.database.entities.Playlist;
 import alec_wam.musicplayer.utils.FragmentUtils;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import alec_wam.musicplayer.databinding.FragmentPlaylistsBinding;
@@ -78,7 +79,7 @@ public class PlaylistsFragment extends Fragment implements PlaylistListAdaptor.O
         final EditText playlistNameInput = new EditText(getContext());
         playlistNameInput.setHint("Enter playlist name");
 
-        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getContext());
+        MaterialAlertDialogBuilder dialogBuilder = new MaterialAlertDialogBuilder(getContext());
         dialogBuilder.setTitle("Create New Playlist");
         dialogBuilder.setView(playlistNameInput);
 

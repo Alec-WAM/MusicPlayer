@@ -23,6 +23,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
 import alec_wam.musicplayer.data.database.AppDatabaseRepository;
+import alec_wam.musicplayer.data.database.AppDatabaseViewModel;
 import alec_wam.musicplayer.database.MusicDatabase;
 import alec_wam.musicplayer.services.MusicPlayerService;
 import alec_wam.musicplayer.ui.views.MusicPlayerOverlay;
@@ -41,6 +42,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.session.MediaController;
 import androidx.media3.session.SessionToken;
 import androidx.navigation.NavController;
@@ -68,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
     private AppDatabaseRepository appDatabaseRepository;
     private ActivityResultLauncher<Intent> imagePickerLauncher;
     private int imageSelectPlaylistId = -1;
+    private AppDatabaseViewModel databaseViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +78,8 @@ public class MainActivity extends AppCompatActivity {
         DynamicColors.applyToActivityIfAvailable(this);
         DynamicColors.applyToActivitiesIfAvailable(this.getApplication());
         super.onCreate(savedInstanceState);
+
+        databaseViewModel = new ViewModelProvider(this).get(AppDatabaseViewModel.class);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -140,6 +145,7 @@ public class MainActivity extends AppCompatActivity {
 
         playerView = binding.playerView;
         playerView.setVisibility(View.GONE);
+        playerView.setDatabaseViewModel(this.databaseViewModel);
         ViewCompat.setOnApplyWindowInsetsListener(playerView, (v, insets) -> {
             // Get the top inset (status bar height)
             int topInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;

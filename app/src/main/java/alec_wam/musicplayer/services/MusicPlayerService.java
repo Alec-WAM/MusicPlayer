@@ -8,6 +8,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -40,6 +43,8 @@ import alec_wam.musicplayer.database.MusicArtist;
 import alec_wam.musicplayer.database.MusicDatabase;
 import alec_wam.musicplayer.database.MusicFile;
 import alec_wam.musicplayer.utils.MusicPlayerUtils;
+import alec_wam.musicplayer.utils.ThemedDrawableUtils;
+import alec_wam.musicplayer.utils.Utils;
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -59,8 +64,6 @@ import androidx.media3.session.LibraryResult;
 import androidx.media3.session.MediaLibraryService;
 import androidx.media3.session.MediaSession;
 import androidx.media3.session.SessionError;
-
-import static alec_wam.musicplayer.utils.MusicPlayerUtils.BUNDLE_SONG_CHANGE_SONG_PLAYLIST_SONG_ID;
 
 public class MusicPlayerService extends MediaLibraryService {
 
@@ -102,6 +105,7 @@ public class MusicPlayerService extends MediaLibraryService {
     private MusicPlayerSavedDataManager musicPlayerSavedDataManager;
     private AppDatabaseRepository appDatabaseRepository;
     private boolean isLibraryBuilt = false;
+    private byte[] unknownAlbumByteArray;
 
     public MusicPlayerService() {
     }
@@ -176,6 +180,9 @@ public class MusicPlayerService extends MediaLibraryService {
                 e.printStackTrace();
             }
         }
+
+        Drawable unknownAlbumDrawable = ThemedDrawableUtils.getThemedIcon(getApplicationContext(), R.drawable.ic_unkown_album, com.google.android.material.R.attr.colorPrimary, Color.GRAY);
+        unknownAlbumByteArray = ThemedDrawableUtils.getByteArrayFromDrawable(unknownAlbumDrawable);
 
         LOGGER.info("Created MusicService");
         AudioAttributes audioAttributes = new AudioAttributes.Builder().setContentType(C.AUDIO_CONTENT_TYPE_MUSIC).setUsage(C.USAGE_MEDIA).build();
@@ -859,15 +866,15 @@ public class MusicPlayerService extends MediaLibraryService {
                 for (String albumId : recentAlbums) {
                     MusicAlbum album = MusicDatabase.getAlbumById(albumId);
                     if (album == null) continue;
+                    MediaMetadata.Builder builder = new MediaMetadata.Builder()
+                            .setTitle(album.getName())
+                            .setArtworkUri(album.getAlbumArtUri())
+                            .setArtist(album.getArtist())
+                            .setIsBrowsable(true)
+                            .setIsPlayable(false);
                     MediaItem albumMediaItem = new MediaItem.Builder()
                             .setMediaId("album_" + album.getAlbumId())
-                            .setMediaMetadata(new MediaMetadata.Builder()
-                                    .setTitle(album.getName())
-                                    .setArtworkUri(album.getAlbumArtUri())
-                                    .setArtist(album.getArtist())
-                                    .setIsBrowsable(true)
-                                    .setIsPlayable(false)
-                                    .build())
+                            .setMediaMetadata(builder.build())
                             .build();
                     mediaItems.add(albumMediaItem);
                 }
@@ -878,6 +885,7 @@ public class MusicPlayerService extends MediaLibraryService {
                         List<String> favAlbumIds = this.appDatabaseRepository.getAllFavoriteAlbumsSync();
                         List<MusicAlbum> favAlbums = favAlbumIds.stream().map((albumId) -> MusicDatabase.getAlbumById(albumId)).filter((album -> album !=null)).sorted(Comparator.comparing(a -> a.getName().toLowerCase())).toList();
                         for (MusicAlbum album : favAlbums) {
+
                             MediaItem albumMediaItem = new MediaItem.Builder()
                                     .setMediaId("album_" + album.getAlbumId())
                                     .setMediaMetadata(new MediaMetadata.Builder()
@@ -957,21 +965,37 @@ public class MusicPlayerService extends MediaLibraryService {
                     }
                 }
             } else if (parentId.equalsIgnoreCase("root_albums")) {
-                List<MusicAlbum> sortedAlbums = new ArrayList<>(MusicDatabase.ALBUMS.values());
-                sortedAlbums.sort(Comparator.comparing(a -> a.getName().toLowerCase()));
-                for (MusicAlbum album : sortedAlbums) {
-                    MediaItem albumMediaItem = new MediaItem.Builder()
-                            .setMediaId("album_" + album.getAlbumId())
-                            .setMediaMetadata(new MediaMetadata.Builder()
-                                    .setTitle(album.getName())
-                                    .setArtworkUri(album.getAlbumArtUri())
-                                    .setArtist(album.getArtist())
-                                    .setIsBrowsable(true)
-                                    .setIsPlayable(false)
-                                    .build())
-                            .build();
-                    mediaItems.add(albumMediaItem);
-                }
+                return Futures.submitAsync(() -> {
+                    List<MusicAlbum> sortedAlbums = new ArrayList<>(MusicDatabase.ALBUMS.values());
+                    sortedAlbums.sort(Comparator.comparing(a -> a.getName().toLowerCase()));
+                    for (MusicAlbum album : sortedAlbums) {
+                        MediaMetadata.Builder builder = new MediaMetadata.Builder()
+                                .setTitle(album.getName())
+                                .setArtworkUri(album.getAlbumArtUri())
+                                .setArtist(album.getArtist())
+                                .setIsBrowsable(true)
+                                .setIsPlayable(false);
+//                        Uri albumUri = album.getAlbumArtUri();
+//                        if(albumUri == null){
+//                            LOGGER.info("Null Art");
+//                        }
+//                        if(Utils.checkUriExists(getApplicationContext(), albumUri)){
+//                            builder.setArtworkUri(album.getAlbumArtUri());
+//                        }
+//                        else {
+//                            builder.setArtworkData(unknownAlbumByteArray, MediaMetadata.PICTURE_TYPE_FRONT_COVER);
+//                        }
+
+                        MediaItem albumMediaItem = new MediaItem.Builder()
+                                .setMediaId("album_" + album.getAlbumId())
+                                .setMediaMetadata(builder.build())
+                                .build();
+                        mediaItems.add(albumMediaItem);
+                    }
+
+                    LibraryResult libraryRootResult = LibraryResult.ofItemList(mediaItems, params);
+                    return Futures.immediateFuture(libraryRootResult);
+                }, backgroundExecutor);
             } else if (parentId.startsWith("album_")) {
                 String albumId = parentId.substring("album_".length());
 

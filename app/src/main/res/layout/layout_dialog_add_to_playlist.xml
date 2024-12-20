@@ -10,8 +10,9 @@
         android:id="@+id/dialog_add_to_playlist_header_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingVertical="2dp"
-        android:paddingStart="5dp"
+        android:paddingStart="10dp"
+        android:paddingTop="5dp"
+        android:paddingBottom="2dp"
         android:text="@string/dialog_add_to_playlist"
         android:textSize="24sp"
         android:textStyle="bold" />
@@ -38,4 +39,5 @@
         android:layout_marginHorizontal="4dp"
         android:text="Create Playlist"
         app:icon="@drawable/ic_add" />
+
 </LinearLayout>

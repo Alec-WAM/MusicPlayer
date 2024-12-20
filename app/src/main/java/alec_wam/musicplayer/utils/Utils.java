@@ -1,7 +1,16 @@
 package alec_wam.musicplayer.utils;
 
+import android.content.ContentResolver;
+import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.MediaStore;
+import android.util.Log;
+import android.util.Size;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.logging.Logger;
 
 public class Utils {
 
@@ -61,5 +70,27 @@ public class Utils {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static boolean checkUriExists(Context context, Uri uri) {
+        ContentResolver contentResolver = context.getContentResolver();
+
+        if (uri != null) {
+            Cursor cursor = null;
+            try {
+                // Query the URI
+                cursor = contentResolver.query(uri, null, null, null, null);
+                Log.i("Utils", "" + (cursor !=null) + " " + cursor.getCount() + " " + uri.toString());
+                // Return true if we found at least one item
+                return cursor != null && cursor.moveToFirst();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+        }
+        return false; // URI was null or no data found
     }
 }

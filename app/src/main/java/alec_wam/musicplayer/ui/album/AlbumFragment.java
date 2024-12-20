@@ -142,10 +142,11 @@ public class AlbumFragment extends Fragment {
         }
 
         if(albumArt !=null) {
+            Drawable themed_unknown_album = ThemedDrawableUtils.getThemedIcon(this.getContext(), R.drawable.ic_unkown_album, com.google.android.material.R.attr.colorPrimary, Color.BLACK);
             Glide.with(cover.getContext())
                     .load(albumArt)  // URI for album art
                     .placeholder(R.drawable.ic_unkown_album)  // Optional placeholder
-                    .error(R.drawable.ic_unkown_album)  // Optional error image
+                    .error(themed_unknown_album)  // Optional error image
                     .into(cover);
         }
         titleView.setText(title);

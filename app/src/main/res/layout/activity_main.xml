@@ -37,11 +37,12 @@
             android:id="@+id/media_player_small"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/nav_host_fragment_activity_main"
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="8dp"
             app:layout_constraintBottom_toTopOf="@id/nav_view"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            />
+            app:layout_constraintTop_toBottomOf="@id/nav_host_fragment_activity_main" />
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/nav_view"

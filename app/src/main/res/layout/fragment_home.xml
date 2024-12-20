@@ -23,14 +23,17 @@
                 android:id="@+id/home_card_recent_albums"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="?attr/colorSurfaceContainerHigh">
+                android:background="?attr/colorSurfaceContainerHigh"
+                app:cardCornerRadius="16dp">
 
                 <LinearLayout
                     android:id="@+id/home_card_recent_albums_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="10dp">
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="10dp"
+                    android:paddingStart="15dp">
 
                     <TextView
                         android:id="@+id/home_card_recent_albums_label"

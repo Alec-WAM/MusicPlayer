@@ -24,10 +24,13 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import alec_wam.musicplayer.R;
+import alec_wam.musicplayer.data.database.AppDatabaseViewModel;
 import alec_wam.musicplayer.database.MusicDatabase;
 import alec_wam.musicplayer.database.MusicFile;
+import alec_wam.musicplayer.ui.album.AlbumFragment;
 import alec_wam.musicplayer.utils.FragmentUtils;
 import alec_wam.musicplayer.utils.MusicPlayerUtils;
+import alec_wam.musicplayer.utils.PlaylistUtils;
 import alec_wam.musicplayer.utils.ThemedDrawableUtils;
 import alec_wam.musicplayer.utils.Utils;
 import androidx.annotation.Nullable;
@@ -50,6 +53,8 @@ public class MusicPlayerOverlay extends ConstraintLayout implements Player.Liste
     public MediaController mediaController;
     private Handler handler = new Handler(Looper.getMainLooper());
     private Runnable seekBarRunnable;
+
+    private AppDatabaseViewModel databaseViewModel;
 
     private String mediaId;
 
@@ -234,6 +239,10 @@ public class MusicPlayerOverlay extends ConstraintLayout implements Player.Liste
 //        songMenuBehavior.setDraggable(false);
     }
 
+    public void setDatabaseViewModel(AppDatabaseViewModel databaseViewModel) {
+        this.databaseViewModel = databaseViewModel;
+    }
+
     public void setMediaController(MediaController controller) {
         this.mediaController = controller;
         updateFromMediaItem(controller.getCurrentMediaItem());
@@ -260,6 +269,14 @@ public class MusicPlayerOverlay extends ConstraintLayout implements Player.Liste
                 }
             };
             List<ModalMenuBottomSheet.MenuOption> menuOptionList = new ArrayList<>();
+            menuOptionList.add(new ModalMenuBottomSheet.MenuOption(R.drawable.ic_playlist_add, "Add to Playlist", new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(MusicPlayerOverlay.this.databaseViewModel !=null) {
+                        PlaylistUtils.showAddToPlaylistDialog(MusicPlayerOverlay.this.getContext(), musicFile.getId(), databaseViewModel);
+                    }
+                }
+            }));
             menuOptionList.add(new ModalMenuBottomSheet.MenuOption(R.drawable.ic_unkown_album, "View Album", new OnClickListener() {
                 @Override
                 public void onClick(View view) {

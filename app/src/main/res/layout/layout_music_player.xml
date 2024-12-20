@@ -32,9 +32,12 @@
                 style="?attr/materialIconButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:paddingHorizontal="4dp"
+                android:paddingVertical="4dp"
                 android:textColor="?attr/colorOnSurface"
                 app:icon="@drawable/ic_minimize"
-                app:iconSize="30dp"
+                app:iconSize="38dp"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 

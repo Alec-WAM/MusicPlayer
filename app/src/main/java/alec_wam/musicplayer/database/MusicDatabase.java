@@ -44,7 +44,8 @@ public class MusicDatabase {
 //                MediaStore.Audio.Media.ARTIST_ID,
                 MediaStore.Audio.Media.ARTIST,
                 MediaStore.Audio.Media.TRACK,
-                MediaStore.Audio.Media.IS_MUSIC
+                MediaStore.Audio.Media.IS_MUSIC,
+                MediaStore.Audio.Media.BUCKET_ID
         };
         String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0";
         String sortOrder = MediaStore.Audio.Media.TITLE + " ASC";
@@ -73,6 +74,8 @@ public class MusicDatabase {
                     cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ARTIST);
             int trackColumn =
                     cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK);
+            int bucketIdColumn =
+                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.BUCKET_ID);
 
             while (cursor.moveToNext()) {
                 // Get values of columns for a given video.
@@ -85,12 +88,13 @@ public class MusicDatabase {
                 String albumName = cursor.getString(albumColumn).trim();
                 String albumArtist = cursor.getString(albumArtistColumn);
                 int track = cursor.getInt(trackColumn);
+                String bucket_id = cursor.getString(bucketIdColumn);
 
                 String[] uniqueIdItems = {name, artist, albumName, ""+track};
                 String uniqueSongId = buildUniqueId(uniqueIdItems);
 
                 String artistToUse = albumArtist !=null ? albumArtist : artist;
-                String[] uniqueAlbumIdItems = {albumName, artistToUse};
+                String[] uniqueAlbumIdItems = {albumName, artistToUse, bucket_id};
                 String uniqueAlbumId = buildUniqueId(uniqueAlbumIdItems);
 
                 String[] artistIdItems = {artistToUse};

@@ -1,6 +1,5 @@
 package alec_wam.musicplayer.utils;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
@@ -15,6 +14,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -31,6 +31,7 @@ import alec_wam.musicplayer.data.database.AppDatabaseRepository;
 import alec_wam.musicplayer.data.database.AppDatabaseViewModel;
 import alec_wam.musicplayer.data.database.entities.Playlist;
 import alec_wam.musicplayer.ui.playlists.PlaylistFragment;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 
 public class PlaylistUtils {
@@ -63,7 +64,7 @@ public class PlaylistUtils {
         View dialogView = inflater.inflate(R.layout.layout_dialog_add_to_playlist, null);
 
         // Create the dialog builder
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context);
         builder.setView(dialogView);
 
         // Set up the RecyclerView (assuming you have an adapter)

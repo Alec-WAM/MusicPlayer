@@ -17,6 +17,7 @@ import alec_wam.musicplayer.database.MusicAlbum;
 import alec_wam.musicplayer.database.MusicDatabase;
 import alec_wam.musicplayer.utils.FragmentUtils;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
@@ -97,6 +98,7 @@ public class AlbumListFragment extends Fragment implements AlbumListAdaptor.OnAl
         adaptor = new AlbumListAdaptor(this.getContext(), filteredAlbums, this);
         recyclerView.setAdapter(adaptor);
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
+        dividerItemDecoration.setDrawable(ContextCompat.getDrawable(this.getContext(), R.drawable.clear_divider));
         recyclerView.addItemDecoration(dividerItemDecoration);
 
         return root;
